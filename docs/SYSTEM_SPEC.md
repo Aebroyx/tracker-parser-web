@@ -14,7 +14,8 @@ Build a **privacy-first, client-side only** web application that enables Instagr
 2. Parse and visualize their **followers** and **following** lists.
 3. Identify **non-followers** (accounts you follow that don't follow you back).
 4. Identify **fans** (accounts that follow you but you don't follow back).
-5. Establish a **baseline snapshot** and compare it over time to detect **new unfollowers**, **new followers**, and **changes** between sessions.
+5. **Accumulate snapshots over time** and compare any two to detect **unfollowers**, **new followers**, and **changes** between backups.
+6. View a **timeline dashboard** showing follower analytics progression across all uploaded backups.
 
 **No user data ever leaves the browser.** There is no backend, no database server, no telemetry, and no external API calls involving user data.
 
@@ -36,16 +37,16 @@ Build a **privacy-first, client-side only** web application that enables Instagr
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
-| **Framework** | Next.js 14+ (App Router) | File-based routing, static export (`output: 'export'`), React Server Components for layout shells. |
+| **Framework** | Next.js 14+ (App Router) | File-based routing, SSR-capable layout shells, standard Vercel deployment. |
 | **Language** | TypeScript (Strict Mode) | Type safety for complex JSON parsing and data diffing logic. |
 | **Styling** | Tailwind CSS v3+ | Utility-first CSS for rapid, consistent UI development. |
 | **UI Components** | Shadcn UI | Accessible, composable primitives built on Radix UI. Not a dependency — components are copied into the project. |
 | **Icons** | Lucide React | Consistent, lightweight SVG icon library. |
-| **Client Storage** | IndexedDB via Dexie.js | Structured storage for baseline snapshots, history, and parsed data. Survives page refreshes. |
+| **Client Storage** | IndexedDB via Dexie.js | Structured storage for accumulated snapshots and timeline history. Survives page refreshes. All data stays in the browser. |
 | **Heavy Parsing** | Web Workers | Offload JSON/HTML parsing of large exports to a background thread to keep the UI responsive. |
 | **Archive Handling** | JSZip | Client-side `.zip` extraction to access Instagram export files without server involvement. |
 | **HTML Parsing** | DOMParser (built-in) | Parse Instagram HTML exports in the Web Worker using the browser-native `DOMParser` API. No external dependency required. |
-| **Deployment** | Static Export (Vercel / GitHub Pages) | `next export` produces a fully static site. No server runtime required. |
+| **Deployment** | Vercel (Standard) | Standard Next.js deployment on Vercel. No server compute for user data — Vercel only serves the app. Free tier sufficient. |
 
 ---
 
@@ -193,9 +194,9 @@ instagram-data-export/
 | Phase | Feature | Spec File | Status |
 |-------|---------|-----------|--------|
 | 1 | File Upload & JSON/HTML Parsing | `docs/features/01_file_processing.md` | 📝 Draft |
-| 2 | Follower/Following Diff Engine | `docs/features/02_diff_engine.md` | ⏳ Planned |
-| 3 | Baseline Snapshot & History | `docs/features/03_baseline_history.md` | ⏳ Planned |
-| 4 | Dashboard & Visualization | `docs/features/04_dashboard_ui.md` | ⏳ Planned |
+| 2 | Snapshot Storage & Timeline | `docs/features/02_snapshot_timeline.md` | ⏳ Planned |
+| 3 | Snapshot Diff Engine | `docs/features/03_diff_engine.md` | ⏳ Planned |
+| 4 | Dashboard & Timeline Visualization | `docs/features/04_dashboard_ui.md` | ⏳ Planned |
 | 5 | Data Export & Clear Controls | `docs/features/05_data_management.md` | ⏳ Planned |
 
 ---
@@ -223,6 +224,6 @@ The following are explicitly **out of scope** for this project:
 | **Non-Followers** | Accounts in "Following" that are NOT in "Followers" (you follow them, they don't follow you back). |
 | **Fans** | Accounts in "Followers" that are NOT in "Following" (they follow you, you don't follow them back). |
 | **Mutual** | Accounts that appear in both "Followers" and "Following." |
-| **Baseline** | A saved snapshot of followers/following at a specific point in time, used for comparison. |
-| **Diff** | The computed difference between two datasets (current upload vs. baseline). |
+| **Snapshot** | A timestamped record of a parsed Instagram export, stored in IndexedDB. Snapshots accumulate over time to form a timeline. |
+| **Diff** | The computed difference between two snapshots (e.g., Dec 2025 vs. Jan 2026). Shows gained/lost followers and following. |
 | **Export** | The `.zip`, `.json`, or `.html` file downloaded from Instagram's "Download Your Information" feature. |

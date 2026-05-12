@@ -25,10 +25,10 @@ The application follows a **unidirectional data pipeline** with four distinct st
 
 | Stage | Thread | Input | Output | Failure Mode |
 |-------|--------|-------|--------|-------------|
-| **1. File Upload** | Main | User drags/selects `.zip`, `.json`, or `.html` | `File` / `FileList` objects | Invalid file type → reject with message |
+| **1. File Upload** | Main | User selects mode (ZIP/JSON/HTML) and uploads | `File` / `FileList` objects | Invalid file type → reject with message |
 | **2. Parser Engine** | Web Worker | `File` blob / extracted JSON or HTML strings | `ParsedExport` (normalized) | Malformed JSON/HTML → structured error with details |
-| **3. IndexedDB Storage** | Main | `ParsedExport` | Stored `Snapshot` record | Storage quota exceeded → warn user |
-| **4. UI Diffing & Render** | Main | Current `ParsedExport` + stored `Snapshot` | Rendered diff tables, stats | No baseline → show current data only |
+| **3. IndexedDB Storage** | Main | `ParsedExport` | Stored `Snapshot` record (accumulated) | Storage quota exceeded → warn user |
+| **4. UI Diffing & Render** | Main | Latest `Snapshot` + previous `Snapshot` | Timeline dashboard, diff tables, stats | Only 1 snapshot → show current data only, no diff |
 
 ---
 
@@ -41,19 +41,19 @@ tracker-parser-web/
 │   ├── ARCHITECTURE.md
 │   └── features/
 │       ├── 01_file_processing.md
-│       ├── 02_diff_engine.md
+│       ├── 02_snapshot_timeline.md
 │       └── ...
 ├── public/                        # Static assets
 ├── src/
 │   ├── app/                       # Next.js App Router
 │   │   ├── layout.tsx             # Root layout (fonts, metadata, providers)
-│   │   ├── page.tsx               # Landing / upload page
-│   │   └── results/
-│   │       └── page.tsx           # Results / diff dashboard
+│   │   ├── page.tsx               # Smart landing: upload zone OR dashboard
+│   │   └── upload/
+│   │       └── page.tsx           # Dedicated upload page (for returning users)
 │   ├── components/
 │   │   ├── ui/                    # Shadcn UI primitives (Button, Card, etc.)
-│   │   ├── file-upload/           # Drop zone, file validation UI
-│   │   ├── results/               # Diff tables, stat cards
+│   │   ├── file-upload/           # Drop zone, file validation UI, mode selector
+│   │   ├── dashboard/             # Timeline chart, snapshot cards, diff tables
 │   │   └── layout/                # Header, Footer, Privacy Banner
 │   ├── lib/
 │   │   ├── parser/
@@ -66,14 +66,14 @@ tracker-parser-web/
 │   │   │   ├── dexie-client.ts    # Dexie.js database definition
 │   │   │   └── snapshot-store.ts  # CRUD operations for snapshots
 │   │   ├── diff/
-│   │   │   └── diff-engine.ts     # Set operations: non-followers, fans, mutual
+│   │   │   └── diff-engine.ts     # Set operations: non-followers, fans, mutual, snapshot diff
 │   │   └── utils/
 │   │       ├── constants.ts       # App-wide constants (limits, keys)
 │   │       └── formatters.ts      # Date/number formatting helpers
 │   ├── hooks/
 │   │   ├── use-file-upload.ts     # File input state management
 │   │   ├── use-parser-worker.ts   # Web Worker communication hook
-│   │   └── use-snapshots.ts       # IndexedDB snapshot queries
+│   │   └── use-snapshots.ts       # IndexedDB snapshot queries + timeline data
 │   └── types/
 │       ├── instagram.ts           # Instagram export type definitions
 │       ├── parser.ts              # Parser input/output types
@@ -223,10 +223,8 @@ interface Snapshot {
   data: ParsedExport;
   /** ISO 8601 timestamp when the snapshot was saved */
   savedAt: string;
-  /** User-provided label (optional) */
+  /** User-provided label (optional, e.g., "Dec 2025 Backup") */
   label?: string;
-  /** Whether this snapshot is marked as the active baseline */
-  isBaseline: boolean;
 }
 
 class TrackerDatabase extends Dexie {
@@ -236,7 +234,7 @@ class TrackerDatabase extends Dexie {
     super('instagram-tracker');
     this.version(1).stores({
       // Indexed fields only — Dexie stores the full object regardless
-      snapshots: '++id, savedAt, isBaseline',
+      snapshots: '++id, savedAt',
     });
   }
 }
@@ -246,21 +244,26 @@ class TrackerDatabase extends Dexie {
 
 | Rule | Detail |
 |------|--------|
-| **Max snapshots** | 20 snapshots retained. Oldest non-baseline snapshots are auto-pruned when the limit is reached. |
-| **Baseline constraint** | Only ONE snapshot can be marked as `isBaseline: true` at any time. Setting a new baseline unsets the previous one. |
+| **Max snapshots** | 20 snapshots retained. When the limit is reached, the oldest snapshot is auto-pruned. User is warned before pruning. |
+| **Chronological ordering** | Snapshots are always displayed sorted by `savedAt` (oldest first). The latest snapshot is the "current" state. |
 | **Data integrity** | Snapshots are immutable once saved. Users can delete or relabel, but cannot edit parsed data. |
 | **Size estimation** | Each snapshot is estimated at ~50KB–2MB depending on follower/following counts. The app displays approximate storage usage. |
+| **Auto-diff on upload** | When a new snapshot is saved, the app automatically computes the diff against the previous (most recent) snapshot. |
 
 ---
 
 ## 6. Diff Engine Design
 
-The diff engine operates on **sets of usernames** derived from `ParsedExport` data.
+The diff engine operates on **sets of usernames** derived from `ParsedExport` data. It supports two types of diffs:
+
+1. **Within-snapshot diff** — Analyzes a single snapshot (non-followers, fans, mutuals)
+2. **Cross-snapshot diff** — Compares two snapshots from different points in time (gained/lost followers)
 
 ```typescript
 // lib/diff/diff-engine.ts
 
-interface DiffResult {
+/** Analysis of a single snapshot */
+interface SnapshotAnalysis {
   /** Accounts you follow that don't follow you back */
   nonFollowers: InstagramAccount[];
   /** Accounts that follow you but you don't follow back */
@@ -268,7 +271,6 @@ interface DiffResult {
   /** Accounts in both followers and following */
   mutuals: InstagramAccount[];
 
-  /** Stats summary */
   stats: {
     totalFollowers: number;
     totalFollowing: number;
@@ -278,38 +280,46 @@ interface DiffResult {
   };
 }
 
-/** If a baseline exists, compute changes between snapshots */
-interface BaselineDiff {
-  /** New followers since baseline */
+/** Comparison between two snapshots (older vs newer) */
+interface SnapshotDiff {
+  /** Snapshot IDs being compared */
+  olderSnapshotId: number;
+  newerSnapshotId: number;
+  /** New followers since older snapshot */
   gainedFollowers: InstagramAccount[];
-  /** Lost followers since baseline (unfollowers) */
+  /** Lost followers since older snapshot (unfollowers) */
   lostFollowers: InstagramAccount[];
-  /** New accounts you started following since baseline */
+  /** New accounts you started following */
   newFollowing: InstagramAccount[];
-  /** Accounts you unfollowed since baseline */
+  /** Accounts you unfollowed */
   removedFollowing: InstagramAccount[];
+
+  stats: {
+    followerChange: number;   // positive = gained, negative = lost
+    followingChange: number;
+    gainedCount: number;
+    lostCount: number;
+  };
 }
 ```
 
 ### 6.1 Diff Algorithm
 
 ```
-Given:
-  F  = Set of follower usernames (current upload)
-  G  = Set of following usernames (current upload)
-  Fb = Set of follower usernames (baseline, if exists)
-  Gb = Set of following usernames (baseline, if exists)
+Within-Snapshot (single snapshot S):
+  F = Set of follower usernames in S
+  G = Set of following usernames in S
+  Non-Followers = G \ F
+  Fans          = F \ G
+  Mutuals       = F ∩ G
 
-Current Diff:
-  Non-Followers = G \ F    (following minus followers)
-  Fans          = F \ G    (followers minus following)
-  Mutuals       = F ∩ G    (intersection)
-
-Baseline Diff (if baseline exists):
-  Gained Followers   = F \ Fb
-  Lost Followers     = Fb \ F
-  New Following      = G \ Gb
-  Removed Following  = Gb \ G
+Cross-Snapshot (older snapshot A vs newer snapshot B):
+  Fa, Ga = follower/following sets from A
+  Fb, Gb = follower/following sets from B
+  Gained Followers   = Fb \ Fa
+  Lost Followers     = Fa \ Fb
+  New Following      = Gb \ Ga
+  Removed Following  = Ga \ Gb
 ```
 
 ---
@@ -332,10 +342,14 @@ interface AppState {
   currentExport: ParsedExport | null;
   /** Error from the most recent parse attempt */
   parseError: ParseError | null;
-  /** The current diff result (computed from currentExport) */
-  currentDiff: DiffResult | null;
-  /** Baseline diff (computed if a baseline snapshot exists) */
-  baselineDiff: BaselineDiff | null;
+  /** Analysis of the latest snapshot (non-followers, fans, mutuals) */
+  latestAnalysis: SnapshotAnalysis | null;
+  /** Diff between the two most recent snapshots (auto-computed on new upload) */
+  latestDiff: SnapshotDiff | null;
+  /** Whether the user has any saved snapshots */
+  hasSnapshots: boolean;
+  /** Total number of saved snapshots */
+  snapshotCount: number;
 }
 ```
 
@@ -359,11 +373,10 @@ interface AppState {
 
 | Route | Component | Purpose |
 |-------|-----------|---------|
-| `/` | `app/page.tsx` | Landing page with file upload zone and privacy notice |
-| `/results` | `app/results/page.tsx` | Dashboard showing parsed data, diffs, and stats |
-| `/history` | `app/history/page.tsx` | Saved snapshots list with baseline management |
+| `/` | `app/page.tsx` | **Smart landing:** If no snapshots exist → show upload zone (first-time experience). If snapshots exist → show timeline dashboard with "Upload New Backup" button. |
+| `/upload` | `app/upload/page.tsx` | Dedicated upload page for returning users. Shows mode selector (ZIP/JSON/HTML) and drop zone. After successful parse → redirect to `/`. |
 
-> **Note:** Navigation to `/results` is programmatic (after successful parse). There is no direct URL access to results without data — the page redirects to `/` if no current export exists.
+> **Note:** There is no separate `/results` or `/history` page. The dashboard on `/` shows everything: latest snapshot analysis, diff against previous, and timeline history. This keeps the UX simple — one page to see all your data.
 
 ---
 

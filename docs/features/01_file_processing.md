@@ -9,7 +9,7 @@
 
 ## 1. Feature Summary
 
-Enable users to upload Instagram data exports in `.zip`, `.json`, or `.html` format, parse them in a Web Worker, validate the data structure, normalize it into the canonical `ParsedExport` model, and surface any errors with clear, actionable messages.
+Enable users to upload Instagram data exports in `.zip`, `.json`, or `.html` format, parse them in a Web Worker, validate the data structure, normalize it into the canonical `ParsedExport` model, save the result as a **timestamped snapshot** in IndexedDB, and surface any errors with clear, actionable messages. Each upload produces one complete snapshot that is accumulated for timeline-based comparison.
 
 ---
 
@@ -39,8 +39,7 @@ Enable users to upload Instagram data exports in `.zip`, `.json`, or `.html` for
 | AC-3 | Files of other types are rejected immediately | Drop a `.png` → error toast: "Unsupported file type. Please upload a .zip, .json, or .html file." |
 | AC-4 | Files exceeding 500MB are rejected before parsing | Upload 600MB file → error toast: "File exceeds the 500MB limit." |
 | AC-5 | The drop zone provides visual feedback on drag-over | Border color changes, icon animates on `dragenter` |
-| AC-6 | Multiple `.json` or `.html` files can be uploaded at once | User selects both `followers_1.json` and `following.json` (or `.html` equivalents) → both are processed together |
-| AC-6b | Mixed `.json` and `.html` files can be uploaded together | User selects `followers_1.html` and `following.json` → both are parsed and merged |
+| AC-6 | Multiple files can be uploaded at once within the selected mode | User selects `followers_1.json` and `following.json` → both are processed into one snapshot |
 | AC-7 | Clicking the upload zone opens the system file picker | `<input type="file">` is triggered programmatically |
 
 ### 3.2 ZIP Processing
@@ -78,7 +77,7 @@ Enable users to upload Instagram data exports in `.zip`, `.json`, or `.html` for
 | AC-22 | The progress bar shows percentage completion | Percentage increments smoothly (not just 0% → 100%) |
 | AC-23 | The UI remains responsive during parsing | User can scroll, interact with other elements. No "page unresponsive" dialog. |
 | AC-24 | Parsing can be cancelled by the user | A "Cancel" button sends `CANCEL` message to the Worker and resets the UI |
-| AC-25 | Successful parsing navigates the user to `/results` | After `SUCCESS` message, `router.push('/results')` is called |
+| AC-25 | Successful parsing saves a snapshot and navigates to dashboard | After `SUCCESS` message, snapshot is saved to IndexedDB, then `router.push('/')` shows the dashboard with the new data |
 
 ---
 
@@ -194,39 +193,48 @@ The file is identified as "followers" or "following" based on:
 
 ---
 
-## 6. Multi-File Upload Merge Behavior
+## 6. Upload Model: Replace & Snapshot
 
-When a user uploads multiple files (whether via drag-and-drop, file picker, or a ZIP containing both), the app **merges** them into a single `ParsedExport` rather than replacing previous uploads.
+Each upload produces a **single, complete snapshot**. There is no incremental merge. Uploading a new file always **replaces** the in-progress parse and creates a fresh snapshot.
 
-### 6.1 Merge Rules
+### 6.1 Upload Modes
 
-| Scenario | Behavior |
-|----------|----------|
-| Upload `followers_1.json` then `following.json` | Both are merged into one `ParsedExport` with populated `followers` and `following` arrays |
-| Upload `followers_1.json` then `followers_2.json` | The two follower files are concatenated and deduplicated (latest timestamp wins) |
-| Upload `followers_1.html` then `following.json` | Mixed formats are accepted — each file is parsed with its appropriate parser, then merged |
-| Upload a `.zip` containing everything | All recognized files are parsed and merged automatically |
-| Upload `followers_1.json`, then later upload another `followers_1.json` | **The new file replaces** the previous data for that specific file. Other files in the merge are kept |
+The user selects one of three modes before uploading:
 
-### 6.2 Merge UX Flow
+| Mode | What the user uploads | What happens |
+|------|----------------------|--------------|
+| **ZIP** | A single `.zip` file | The ZIP is extracted, follower/following files are auto-discovered, parsed, and combined into one snapshot |
+| **JSON Files** | One or more `.json` files | Each file is validated as Instagram JSON. The user must provide both followers and following files. Uploading a new file of the same category (followers/following) replaces the previous one |
+| **HTML Files** | One or more `.html` files | Same as JSON mode but with HTML parsing. Mixed JSON+HTML in the same session is allowed |
+
+### 6.2 Replace Behavior (Non-ZIP Modes)
+
+For JSON/HTML modes where files are uploaded individually:
+
+| Action | Result |
+|--------|--------|
+| Upload `followers_1.json` | Followers data stored in-memory. Following is empty. UI shows: "Followers loaded (150 accounts). Upload your following file to complete the snapshot." |
+| Upload `following.json` | Following data stored. Both lists present. UI shows: "Ready! 150 followers, 200 following." Save as snapshot button appears. |
+| Upload a different `followers_1.json` | **Replaces** the previous followers data entirely. Following data is kept. |
+| Upload a `.zip` while in JSON mode | **Replaces everything.** The ZIP is treated as a complete upload. |
+
+### 6.3 Snapshot Save Flow
 
 ```
-1. User uploads File A (e.g., followers_1.json)
-   → ParsedExport: { followers: [...], following: [] }
-   → UI shows: "Parsed 150 followers. No following data yet."
-   → Button appears: "Add more files" (or "Continue to results")
-
-2. User uploads File B (e.g., following.json)
-   → ParsedExport: { followers: [...], following: [...] }
-   → UI shows: "Parsed 150 followers, 200 following. Ready to analyze!"
-   → Auto-navigates to /results (or user clicks "View Results")
+1. Parse completes successfully → ParsedExport is in memory
+2. User confirms save (or auto-save for ZIP uploads)
+3. Snapshot is written to IndexedDB with current timestamp
+4. If previous snapshots exist → auto-diff computed against latest
+5. Redirect to dashboard ("/")
 ```
 
-### 6.3 Merge State Reset
+### 6.4 File Validation per Mode
 
-- A **"Start Over"** button is always visible during the merge flow
-- Clicking it clears the in-memory `ParsedExport` and resets to the empty upload state
-- Navigating away from the upload page does NOT clear the merge state (preserved in context)
+| Selected Mode | Accepted Files | Rejected With |
+|---------------|---------------|---------------|
+| ZIP | `.zip` only | "Please upload a .zip file. Switch modes if you have individual JSON/HTML files." |
+| JSON Files | `.json` only | "Please upload .json files. Switch to ZIP mode for .zip uploads." |
+| HTML Files | `.html` only | "Please upload .html files. Switch to ZIP mode for .zip uploads." |
 
 ---
 
@@ -319,7 +327,8 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 | `drag-over` | Highlighted border (primary color), pulsing icon, "Drop to upload" text |
 | `uploading` | Solid border, spinner replacing icon, "Reading file…" text |
 | `parsing` | Progress bar appears below zone, stage label shown |
-| `partial` | Green border, checkmark icon, "Parsed X followers. Add more files or view results." with "Add More" and "View Results" buttons |
+| `incomplete` | Amber border, info icon, "Followers loaded. Upload your following file to complete." with file status indicators |
+| `ready` | Green border, checkmark, "Ready! 150 followers, 200 following." with "Save Snapshot" button |
 | `error` | Red border, error icon, error message with "Try Again" button |
 
 ### 10.3 Progress Indicator
@@ -364,7 +373,7 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 | Deduplicate entries | Array with two "alice" entries | Single "alice" with latest timestamp |
 | Merge paginated JSON files | `followers_1.json` + `followers_2.json` | Single merged `followers` array |
 | Merge paginated HTML files | `followers_1.html` + `followers_2.html` | Single merged `followers` array |
-| Mixed format merge | `followers_1.html` + `following.json` | Merged `ParsedExport` with both lists |
+| Replace behavior | Upload followers, then upload different followers | Previous followers data fully replaced |
 | Profile URL soft validation | URL with wrong domain | Warning logged, parsing continues |
 | HTML timestamp extraction | HTML with ISO 8601 timestamps | Correct Unix timestamps in output |
 
@@ -372,15 +381,16 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 
 | Test | Description |
 |------|-------------|
-| Full ZIP flow (JSON) | Upload a real Instagram `.zip` with JSON files → verify parsed output matches expected data |
-| Full ZIP flow (HTML) | Upload a real Instagram `.zip` with HTML files → verify parsed output matches expected data |
-| Multi-JSON flow | Upload separate `followers_1.json` + `following.json` → verify both are parsed and merged |
-| Multi-HTML flow | Upload separate `followers_1.html` + `following.html` → verify both are parsed and merged |
-| Mixed format flow | Upload `followers_1.html` + `following.json` → verify both are parsed and merged correctly |
-| Merge UX flow | Upload followers only → see partial state → upload following → see complete state → navigate to results |
+| Full ZIP flow (JSON) | Upload a real Instagram `.zip` with JSON files → verify snapshot saved to IndexedDB |
+| Full ZIP flow (HTML) | Upload a real Instagram `.zip` with HTML files → verify snapshot saved to IndexedDB |
+| Multi-JSON flow | Upload `followers_1.json` + `following.json` → verify both are parsed into one snapshot |
+| Multi-HTML flow | Upload `followers_1.html` + `following.html` → verify both are parsed into one snapshot |
+| Replace behavior | Upload `followers_1.json` → upload different `followers_1.json` → verify followers data is replaced |
+| Snapshot save flow | Complete upload → save snapshot → verify it appears in IndexedDB |
+| Auto-diff on upload | Upload second snapshot → verify diff is auto-computed against first |
 | Error recovery | Upload invalid file → see error → upload valid file → success |
 | Cancel mid-parse | Start parsing → click cancel → verify UI resets cleanly |
-| Start Over flow | Upload files → click "Start Over" → verify state is fully cleared |
+| Mode validation | Select ZIP mode → try to upload `.json` → verify rejection with helpful message |
 
 ### 11.3 Test Fixtures
 
@@ -422,7 +432,7 @@ __tests__/
 - [ ] Implement `src/lib/parser/zip-handler.ts` (JSZip extraction + file discovery for .json AND .html)
 - [ ] Implement `src/lib/parser/worker.ts` (Web Worker entry point, routing JSON vs HTML)
 - [ ] Create `src/hooks/use-parser-worker.ts` (Worker lifecycle + message handling)
-- [ ] Create `src/hooks/use-file-upload.ts` (drag-and-drop + file input state + merge logic)
+- [ ] Create `src/hooks/use-file-upload.ts` (drag-and-drop + file input state + mode selector + replace logic)
 - [ ] Build `src/components/file-upload/DropZone.tsx`
 - [ ] Build `src/components/file-upload/ProgressBar.tsx`
 - [ ] Build `src/components/layout/PrivacyBanner.tsx`
@@ -442,7 +452,7 @@ __tests__/
 | # | Question | Decision | Rationale |
 |---|----------|----------|-----------|
 | 1 | Should we support HTML format exports? | **✅ Yes.** Full HTML parsing support via DOMParser with structural heuristics. | User has exports in both JSON and HTML formats. HTML parsing is feasible client-side with DOMParser. |
-| 2 | Should multiple file uploads merge or replace? | **✅ Merge.** Files are merged into a single `ParsedExport`. See §6 for detailed merge rules. | Users often need to upload followers and following as separate files. Merging is the natural UX. |
+| 2 | Should multiple file uploads merge or replace? | **✅ Replace.** Each upload replaces the previous data for that category. No incremental merge. See §6. | Simpler mental model. Users upload complete backups as snapshots. The timeline handles comparison between different points in time. |
 | 3 | Should we validate the Instagram profile URL format? | **✅ Soft warning.** Non-blocking validation with warnings collected in `ParseMeta.warnings`. See §7 for rules. | Invalid URLs shouldn't block analysis, but users should be informed of data quality issues. |
-| 4 | What happens if followers span 10+ paginated files? | **✅ Support up to 100 paginated files** (`followers_1` through `followers_100`, JSON or HTML). | 100 files covers even the largest accounts. Beyond that, Instagram would likely change their export format. |
+| 4 | What happens if followers span 10+ paginated files? | **✅ Support up to 100 paginated files** (`followers_1` through `followers_100`, JSON or HTML). | 100 files covers even the largest accounts. |
 
