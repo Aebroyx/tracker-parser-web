@@ -39,7 +39,7 @@ Build a **privacy-first, client-side only** web application that enables Instagr
 |-------|-----------|-----------|
 | **Framework** | Next.js 14+ (App Router) | File-based routing, SSR-capable layout shells, standard Vercel deployment. |
 | **Language** | TypeScript (Strict Mode) | Type safety for complex JSON parsing and data diffing logic. |
-| **Styling** | Tailwind CSS v3+ | Utility-first CSS for rapid, consistent UI development. |
+| **Styling** | Tailwind CSS v3+ | Utility-first CSS for rapid, consistent UI development. Design tokens defined in `docs/DESIGN_LANGUAGE.md`. |
 | **UI Components** | Shadcn UI | Accessible, composable primitives built on Radix UI. Not a dependency — components are copied into the project. |
 | **Icons** | Lucide React | Consistent, lightweight SVG icon library. |
 | **Client Storage** | IndexedDB via Dexie.js | Structured storage for accumulated snapshots and timeline history. Survives page refreshes. All data stays in the browser. |
@@ -59,7 +59,7 @@ This section is **non-negotiable** and governs all implementation decisions.
 | Rule | Enforcement |
 |------|------------|
 | **No data transmission** | The application makes zero HTTP requests containing user data. This includes analytics, error reporting, and logging services. |
-| **No server-side processing** | Next.js is used purely for its static site generation capabilities. No API routes (`/api/*`) are created. No server actions are used for user data. |
+| **No server-side processing** | Next.js is used purely for its client-side rendering capabilities. No API routes (`/api/*`) are created. No server actions are used for user data. |
 | **No third-party data SDKs** | Libraries like Google Analytics, Sentry (with PII), or Mixpanel are prohibited. If analytics are added in the future, they must be privacy-preserving (e.g., Plausible self-hosted) and document-only (page views, no user data). |
 | **Local-only persistence** | All stored data resides in the user's browser via IndexedDB. The user can clear it at any time via in-app controls or browser settings. |
 | **Explicit user consent** | The app must display a clear notice explaining where data is stored and that nothing leaves the device, *before* the first file upload. |

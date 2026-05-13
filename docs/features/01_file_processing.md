@@ -205,7 +205,7 @@ The user selects one of three modes before uploading:
 |------|----------------------|--------------|
 | **ZIP** | A single `.zip` file | The ZIP is extracted, follower/following files are auto-discovered, parsed, and combined into one snapshot |
 | **JSON Files** | One or more `.json` files | Each file is validated as Instagram JSON. The user must provide both followers and following files. Uploading a new file of the same category (followers/following) replaces the previous one |
-| **HTML Files** | One or more `.html` files | Same as JSON mode but with HTML parsing. Mixed JSON+HTML in the same session is allowed |
+| **HTML Files** | One or more `.html` files | Same as JSON mode but with HTML parsing via DOMParser |
 
 ### 6.2 Replace Behavior (Non-ZIP Modes)
 
@@ -254,8 +254,8 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 ### 7.2 Warning Behavior
 
 - Validation warnings are **collected** during parsing and attached to `ParseMeta` as an optional `warnings: string[]` array
-- Warnings are displayed in a collapsible section on the results page
-- Warnings **never block** the parse pipeline or prevent navigation to `/results`
+- Warnings are displayed in a collapsible section on the dashboard
+- Warnings **never block** the parse pipeline or prevent navigation to the dashboard
 - If >50 warnings exist, show the first 50 with a "and N more…" summary
 
 ---
@@ -273,6 +273,7 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 | Valid JSON, wrong structure | Format detection | `UNSUPPORTED_FORMAT` | "We couldn't recognize this Instagram export format." | Yes — retry |
 | Valid HTML, no Instagram links | HTML validation | `UNSUPPORTED_FORMAT` | "This HTML file doesn't appear to be an Instagram export." | Yes — retry |
 | Parse succeeds but 0 followers AND 0 following | Post-normalization check | `EMPTY_DATA` | "No follower or following data was found." (warning, not blocking) | Yes — shown as warning |
+| ZIP contains both JSON and HTML files | Post-extraction scan | `MIXED_FORMATS` | "This ZIP contains both JSON and HTML files. Please re-download your data in a single format." | Yes — retry |
 | Web Worker crashes | Worker `onerror` handler | `UNKNOWN` | "Something went wrong during parsing. Please try again." | Yes — retry |
 | DOMParser unavailable in Worker | Worker feature detection | N/A | Falls back to main thread HTML parsing silently | Auto-handled |
 | IndexedDB write fails | `dexie.snapshots.add()` catch | N/A (post-parse) | "We couldn't save your data. Your browser storage may be full." | Yes — clear old data |
@@ -305,6 +306,7 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 
 ```
 ┌─────────────────────────────────────────────────────────┐
+│   Upload Mode: [ZIP] [JSON Files] [HTML Files]      │
 │                                                         │
 │                    ┌──────────┐                         │
 │                    │  Upload  │                         │
@@ -314,11 +316,18 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 │         Drag & drop your Instagram export here          │
 │              or click to browse files                   │
 │                                                         │
-│         Supports: .zip, .json, or .html files           │
+│         Supports: {dynamic per selected mode}           │
 │         Max size: 500MB                                 │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
+
+**Mode-specific support text:**
+| Mode | Text |
+|------|------|
+| ZIP | "Supports: .zip files" |
+| JSON Files | "Supports: .json files" |
+| HTML Files | "Supports: .html files" |
 
 **States:**
 | State | Visual |
