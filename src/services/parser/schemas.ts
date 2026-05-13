@@ -1,0 +1,53 @@
+/**
+ * Zod validation schemas for Instagram JSON export formats.
+ * See: docs/features/01_file_processing.md §4, §5
+ */
+
+import { z } from 'zod';
+
+// ─── Current Format (2024+) ─────────────────────────────────────────────────
+
+/** A single entry in string_list_data */
+const stringListDataItemSchema = z.object({
+  href: z.string().optional().default(''),
+  value: z.string(),
+  timestamp: z.number().optional().default(0),
+});
+
+/** A single follower/following entry in current format */
+const currentFormatEntrySchema = z.object({
+  title: z.string().optional().default(''),
+  media_list_data: z.array(z.unknown()).optional().default([]),
+  string_list_data: z.array(stringListDataItemSchema).min(1),
+});
+
+/** followers_1.json (current format) — top-level array */
+export const currentFollowersSchema = z.array(currentFormatEntrySchema);
+
+/** following.json (current format) — object with relationships_following key */
+export const currentFollowingSchema = z.object({
+  relationships_following: z.array(currentFormatEntrySchema),
+});
+
+// ─── Legacy Format (Pre-2024) ────────────────────────────────────────────────
+
+/** A single legacy follower/following entry */
+const legacyEntrySchema = z.object({
+  value: z.string(),
+  timestamp: z.number().optional().default(0),
+});
+
+/** Legacy followers — object with relationships_followers key */
+export const legacyFollowersSchema = z.object({
+  relationships_followers: z.array(legacyEntrySchema),
+});
+
+/** Legacy following — object with relationships_following key */
+export const legacyFollowingSchema = z.object({
+  relationships_following: z.array(legacyEntrySchema),
+});
+
+// ─── Schema Types ────────────────────────────────────────────────────────────
+
+export type CurrentFormatEntry = z.infer<typeof currentFormatEntrySchema>;
+export type LegacyEntry = z.infer<typeof legacyEntrySchema>;
