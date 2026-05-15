@@ -127,12 +127,12 @@ function detectJsonFormat(data: unknown): 'current-json' | 'legacy-json' | 'unkn
 ### 4.3 HTML Validation
 
 ```
-function validateHtmlExport(doc: Document): boolean
+```
+function validateHtmlExport(content: string): boolean
 
-1. Parse HTML string with DOMParser → Document
-2. Find all <a> tags with href containing 'instagram.com/'
-3. If count > 0 → return true (valid Instagram HTML export)
-4. return false (not an Instagram export)
+1. Search HTML string for <a> tags with href containing 'instagram.com/' using regex
+2. If match found → return true (valid Instagram HTML export)
+3. return false (not an Instagram export)
 ```
 
 ---
@@ -142,11 +142,14 @@ function validateHtmlExport(doc: Document): boolean
 ### 5.1 Current JSON Format → Canonical
 
 ```
+```
 For each entry in the array (followers) or relationships_following array (following):
-  1. Extract `string_list_data[0].value` → username
+  1. Extract username:
+     - Try `string_list_data[0].value` first (followers format)
+     - Fallback to `title` (following format)
   2. Extract `string_list_data[0].href` → profileUrl
   3. Extract `string_list_data[0].timestamp` → timestamp
-  4. If `string_list_data` is empty or missing → skip entry, log warning
+  4. If both username extractors fail → skip entry, log warning
   5. Normalize username: trim whitespace, convert to lowercase
   6. Construct InstagramAccount { username, profileUrl, timestamp }
 ```
@@ -167,21 +170,20 @@ For each entry in relationships_followers or relationships_following:
 Instagram's HTML exports use unstable CSS class names that change between export versions. The parser uses a **structural heuristic** that does NOT depend on class names.
 
 ```
+```
 function parseHtmlExport(htmlString: string): InstagramAccount[]
 
-1. Parse HTML with `new DOMParser().parseFromString(htmlString, 'text/html')`
-2. Find all <a> tags where href contains 'instagram.com/'
-3. For each <a> tag:
-   a. Extract username from text content of the <a> tag → username
+1. Find all <a> tags where href contains 'instagram.com/' using regex
+2. For each <a> tag match:
+   a. Extract username by stripping HTML tags from the matched text content → username
    b. Extract href attribute → profileUrl
-   c. Walk up to the nearest common ancestor container (parent or grandparent)
-   d. Search sibling/child text nodes for an ISO 8601 timestamp pattern:
+   c. Search a text window around the match (e.g. ±500 chars) for an ISO 8601 timestamp:
       - Regex: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:?\d{2}/
       - If found → parse to Unix timestamp
       - If not found → default timestamp to 0
-   e. Normalize username: trim whitespace, convert to lowercase
-   f. Construct InstagramAccount { username, profileUrl, timestamp }
-4. Return deduplicated array (latest timestamp wins on conflict)
+   d. Normalize username: trim whitespace, convert to lowercase
+   e. Construct InstagramAccount { username, profileUrl, timestamp }
+3. Return deduplicated array (latest timestamp wins on conflict)
 ```
 
 **Determining followers vs. following from HTML:**
@@ -205,7 +207,7 @@ The user selects one of three modes before uploading:
 |------|----------------------|--------------|
 | **ZIP** | A single `.zip` file | The ZIP is extracted, follower/following files are auto-discovered, parsed, and combined into one snapshot |
 | **JSON Files** | One or more `.json` files | Each file is validated as Instagram JSON. The user must provide both followers and following files. Uploading a new file of the same category (followers/following) replaces the previous one |
-| **HTML Files** | One or more `.html` files | Same as JSON mode but with HTML parsing via DOMParser |
+| **HTML Files** | One or more `.html` files | Same as JSON mode but with HTML parsing via regex (DOMParser not supported in Web Workers) |
 
 ### 6.2 Replace Behavior (Non-ZIP Modes)
 
