@@ -247,6 +247,8 @@ self.onmessage = async (event: MessageEvent<WorkerInboundMessage>) => {
     if (error && typeof error === 'object' && 'code' in error) {
       const parseError = error as { code: string; message: string; details?: string };
       sendError(fileId, parseError.code, parseError.message, parseError.details);
+    } else if (error instanceof Error) {
+      sendError(fileId, 'UNKNOWN', error.message, error.stack);
     } else {
       sendError(fileId, 'UNKNOWN', 'An unexpected error occurred during parsing', String(error));
     }

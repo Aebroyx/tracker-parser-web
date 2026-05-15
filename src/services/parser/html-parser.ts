@@ -1,76 +1,97 @@
 /**
- * HTML export parser using DOMParser with structural heuristics.
- * Does NOT rely on CSS class names (Instagram changes them frequently).
+ * HTML export parser using regex-based extraction.
+ * Works in Web Workers (no DOMParser dependency).
+ * Uses structural heuristics — does NOT rely on CSS class names.
  * See: docs/features/01_file_processing.md §5.3
  */
 
 import type { InstagramAccount } from '@/types/instagram';
-import { INSTAGRAM_BASE_URL } from '@/lib/utils/constants';
 import { normalizeUsername, deduplicateAccounts, validateProfileUrl } from './instagram-parser';
 
 /** ISO 8601 timestamp regex pattern */
 const ISO_TIMESTAMP_REGEX = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:?\d{2}/;
 
 /**
- * Validate that an HTML document is a valid Instagram export.
- * Returns true if the document contains Instagram profile links.
+ * Create a fresh anchor regex (avoids global lastIndex state issues).
+ * Captures: [1] = full href, [2] = text content (username)
  */
-export function validateHtmlExport(doc: Document): boolean {
-  const links = doc.querySelectorAll('a[href*="instagram.com/"]');
-  return links.length > 0;
+function createAnchorRegex(): RegExp {
+  return /<a\s[^>]*?href\s*=\s*["'](https?:\/\/(?:www\.)?instagram\.com\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
 }
 
 /**
- * Extract a timestamp from sibling/child text nodes near an anchor tag.
- * Walks up to parent/grandparent to find ISO 8601 timestamps.
+ * Validate that HTML content is a valid Instagram export.
+ * Returns true if the content contains Instagram profile links.
  */
-function extractTimestamp(anchor: Element): number {
-  // Search parent and grandparent containers
-  const containers = [anchor.parentElement, anchor.parentElement?.parentElement];
+export function validateHtmlExport(content: string): boolean {
+  return createAnchorRegex().test(content);
+}
 
-  for (const container of containers) {
-    if (!container) continue;
+/**
+ * Extract a timestamp from the surrounding HTML context near an anchor match.
+ * Looks for ISO 8601 timestamps in nearby text.
+ */
+function extractTimestampFromContext(html: string, matchIndex: number): number {
+  // Look in a window around the match (500 chars before and after)
+  const windowStart = Math.max(0, matchIndex - 300);
+  const windowEnd = Math.min(html.length, matchIndex + 500);
+  const window = html.slice(windowStart, windowEnd);
 
-    // Check all text content in the container's children
-    const children = container.children;
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      // Skip the anchor element itself
-      if (child === anchor || child.contains(anchor)) continue;
+  // Find all timestamps in the window
+  const timestamps: { value: number; distance: number }[] = [];
+  let tsMatch: RegExpExecArray | null;
+  const tsRegex = new RegExp(ISO_TIMESTAMP_REGEX.source, 'g');
 
-      const text = child.textContent?.trim() || '';
-      const match = text.match(ISO_TIMESTAMP_REGEX);
-      if (match) {
-        try {
-          return Math.floor(new Date(match[0]).getTime() / 1000);
-        } catch {
-          // Invalid date, continue searching
-        }
-      }
+  while ((tsMatch = tsRegex.exec(window)) !== null) {
+    try {
+      const ts = Math.floor(new Date(tsMatch[0]).getTime() / 1000);
+      // Distance from the anchor match position (relative to window)
+      const distance = Math.abs(tsMatch.index - (matchIndex - windowStart));
+      timestamps.push({ value: ts, distance });
+    } catch {
+      // Invalid date, skip
     }
   }
 
-  return 0; // Default timestamp if not found
+  // Return the closest timestamp, or 0 if none found
+  if (timestamps.length > 0) {
+    timestamps.sort((a, b) => a.distance - b.distance);
+    return timestamps[0].value;
+  }
+
+  return 0;
+}
+
+/**
+ * Strip HTML tags from a string to get plain text.
+ */
+function stripHtmlTags(html: string): string {
+  return html.replace(/<[^>]*>/g, '').trim();
 }
 
 /**
  * Determine if an HTML file contains followers or following data.
- * Uses filename first, then page title/heading as fallback.
+ * Uses filename first, then content-based heuristics as fallback.
  */
 export function detectHtmlFileType(
   fileName: string,
-  doc: Document
+  content: string
 ): 'followers' | 'following' | 'unknown' {
   // 1. Filename-based detection
   const lowerName = fileName.toLowerCase();
   if (/followers_?\d*\.html?$/i.test(lowerName)) return 'followers';
   if (/following\.html?$/i.test(lowerName)) return 'following';
 
-  // 2. Title/heading fallback
-  const title = doc.querySelector('title')?.textContent?.toLowerCase() || '';
-  const h1 = doc.querySelector('h1')?.textContent?.toLowerCase() || '';
-  const h2 = doc.querySelector('h2')?.textContent?.toLowerCase() || '';
-  const headingText = `${title} ${h1} ${h2}`;
+  // 2. Content-based fallback — look for title or heading
+  const titleMatch = content.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const h1Match = content.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const h2Match = content.match(/<h2[^>]*>([\s\S]*?)<\/h2>/i);
+
+  const headingText = [
+    titleMatch?.[1] || '',
+    h1Match?.[1] || '',
+    h2Match?.[1] || '',
+  ].join(' ').toLowerCase();
 
   if (headingText.includes('following')) return 'following';
   if (headingText.includes('follower')) return 'followers';
@@ -79,23 +100,23 @@ export function detectHtmlFileType(
 }
 
 /**
- * Parse Instagram accounts from an HTML export.
- * Uses structural heuristics — does NOT depend on CSS class names.
+ * Parse Instagram accounts from HTML content using regex.
+ * Works in Web Workers — no DOMParser needed.
  */
 export function parseHtmlAccounts(
-  doc: Document,
+  content: string,
   warnings: string[]
 ): InstagramAccount[] {
   const accounts: InstagramAccount[] = [];
-  const links = doc.querySelectorAll(`a[href*="instagram.com/"]`);
+  const regex = createAnchorRegex(); // Fresh instance, no stale lastIndex
 
-  for (let i = 0; i < links.length; i++) {
-    const anchor = links[i] as HTMLAnchorElement;
-    const href = anchor.getAttribute('href') || '';
-    const textContent = anchor.textContent?.trim() || '';
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(content)) !== null) {
+    const href = match[1];
+    const rawTextContent = stripHtmlTags(match[2]);
 
-    // Skip navigation links (like "instagram.com" itself)
-    if (!textContent || textContent.length === 0) continue;
+    // Skip empty text content
+    if (!rawTextContent || rawTextContent.length === 0) continue;
 
     // Skip links that point to instagram.com root
     try {
@@ -106,13 +127,13 @@ export function parseHtmlAccounts(
       continue;
     }
 
-    const username = normalizeUsername(textContent);
+    const username = normalizeUsername(rawTextContent);
     if (!username) continue;
 
     const [profileUrl, warning] = validateProfileUrl(href, username);
     if (warning) warnings.push(warning);
 
-    const timestamp = extractTimestamp(anchor);
+    const timestamp = extractTimestampFromContext(content, match.index);
 
     accounts.push({
       username,
@@ -134,7 +155,7 @@ export interface HtmlParseResult {
 
 /**
  * Parse an HTML string as an Instagram export file.
- * Uses DOMParser (available in Web Workers on modern browsers).
+ * Uses regex-based extraction (works in Web Workers — no DOMParser).
  */
 export function parseHtmlFile(
   content: string,
@@ -142,32 +163,24 @@ export function parseHtmlFile(
 ): HtmlParseResult {
   const warnings: string[] = [];
 
-  let doc: Document;
-  try {
-    const parser = new DOMParser();
-    doc = parser.parseFromString(content, 'text/html');
-
-    // Check for parser errors
-    const parserError = doc.querySelector('parsererror');
-    if (parserError) {
-      throw new Error('DOMParser returned an error document');
-    }
-  } catch {
+  // Basic HTML validation
+  const trimmed = content.trim();
+  if (!trimmed.startsWith('<') && !trimmed.includes('<html') && !trimmed.includes('<!DOCTYPE')) {
     throw {
       code: 'INVALID_HTML',
       message: `Failed to parse HTML in ${fileName}`,
     };
   }
 
-  if (!validateHtmlExport(doc)) {
+  if (!validateHtmlExport(content)) {
     throw {
       code: 'UNSUPPORTED_FORMAT',
       message: `${fileName} doesn't appear to be an Instagram export (no Instagram links found)`,
     };
   }
 
-  const accounts = parseHtmlAccounts(doc, warnings);
-  const fileType = detectHtmlFileType(fileName, doc);
+  const accounts = parseHtmlAccounts(content, warnings);
+  const fileType = detectHtmlFileType(fileName, content);
 
   const result: HtmlParseResult = {
     followers: [],

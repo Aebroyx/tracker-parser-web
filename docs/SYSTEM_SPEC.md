@@ -112,12 +112,11 @@ instagram-data-export/
 {
   "relationships_following": [
     {
-      "title": "",
+      "title": "username",
       "media_list_data": [],
       "string_list_data": [
         {
           "href": "https://www.instagram.com/username",
-          "value": "username",
           "timestamp": 1700000000
         }
       ]

@@ -142,6 +142,43 @@ export function deduplicateAccounts(accounts: InstagramAccount[]): InstagramAcco
 // ─── Current Format Parsing ──────────────────────────────────────────────────
 
 /**
+ * Resolve username from a current-format entry.
+ * Instagram puts the username in different places depending on file type:
+ *   - followers: string_list_data[0].value
+ *   - following: title
+ */
+function resolveUsername(entry: import('./schemas').CurrentFormatEntry): string {
+  // Try string_list_data[0].value first
+  if (entry.string_list_data && entry.string_list_data.length > 0) {
+    const val = entry.string_list_data[0].value;
+    if (val && val.trim()) return val;
+  }
+  // Fall back to title
+  if (entry.title && entry.title.trim()) return entry.title;
+  return '';
+}
+
+/**
+ * Resolve href from a current-format entry.
+ */
+function resolveHref(entry: import('./schemas').CurrentFormatEntry): string {
+  if (entry.string_list_data && entry.string_list_data.length > 0) {
+    return entry.string_list_data[0].href || '';
+  }
+  return '';
+}
+
+/**
+ * Resolve timestamp from a current-format entry.
+ */
+function resolveTimestamp(entry: import('./schemas').CurrentFormatEntry): number {
+  if (entry.string_list_data && entry.string_list_data.length > 0) {
+    return entry.string_list_data[0].timestamp ?? 0;
+  }
+  return 0;
+}
+
+/**
  * Parse current-format followers (top-level JSON array).
  */
 export function parseCurrentFollowers(
@@ -152,20 +189,21 @@ export function parseCurrentFollowers(
   const accounts: InstagramAccount[] = [];
 
   for (const entry of parsed) {
-    if (!entry.string_list_data || entry.string_list_data.length === 0) {
-      warnings.push('Skipped entry with empty string_list_data');
+    const rawUsername = resolveUsername(entry);
+    if (!rawUsername) {
+      warnings.push('Skipped entry with no username (empty title and string_list_data)');
       continue;
     }
 
-    const item = entry.string_list_data[0];
-    const username = normalizeUsername(item.value);
-    const [profileUrl, warning] = validateProfileUrl(item.href, username);
+    const username = normalizeUsername(rawUsername);
+    const href = resolveHref(entry);
+    const [profileUrl, warning] = validateProfileUrl(href || undefined, username);
     if (warning) warnings.push(warning);
 
     accounts.push({
       username,
       profileUrl,
-      timestamp: item.timestamp ?? 0,
+      timestamp: resolveTimestamp(entry),
     });
   }
 
@@ -183,20 +221,21 @@ export function parseCurrentFollowing(
   const accounts: InstagramAccount[] = [];
 
   for (const entry of parsed.relationships_following) {
-    if (!entry.string_list_data || entry.string_list_data.length === 0) {
-      warnings.push('Skipped following entry with empty string_list_data');
+    const rawUsername = resolveUsername(entry);
+    if (!rawUsername) {
+      warnings.push('Skipped following entry with no username (empty title and string_list_data)');
       continue;
     }
 
-    const item = entry.string_list_data[0];
-    const username = normalizeUsername(item.value);
-    const [profileUrl, warning] = validateProfileUrl(item.href, username);
+    const username = normalizeUsername(rawUsername);
+    const href = resolveHref(entry);
+    const [profileUrl, warning] = validateProfileUrl(href || undefined, username);
     if (warning) warnings.push(warning);
 
     accounts.push({
       username,
       profileUrl,
-      timestamp: item.timestamp ?? 0,
+      timestamp: resolveTimestamp(entry),
     });
   }
 
