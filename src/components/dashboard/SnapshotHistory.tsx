@@ -78,7 +78,7 @@ export function SnapshotHistory({
                       <input
                         value={draftLabel}
                         onChange={(e) => setDraftLabel(e.target.value)}
-                        className="flex-1 min-w-[8rem] px-2 py-1 rounded-lg text-sm bg-bg-primary border border-border-default text-text-primary"
+                        className="flex-1 min-w-32 px-2 py-1 rounded-lg text-sm bg-bg-primary border border-border-default text-text-primary"
                         autoFocus
                         onClick={(e) => e.stopPropagation()}
                       />

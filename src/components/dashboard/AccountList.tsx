@@ -85,7 +85,7 @@ export function AccountList({
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as AccountSortMode)}
-            className="text-xs font-medium rounded-lg border border-border-default bg-bg-primary text-text-primary px-2 py-1.5 min-w-[10rem]"
+            className="text-xs font-medium rounded-lg border border-border-default bg-bg-primary text-text-primary px-2 py-1.5 min-w-40"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
