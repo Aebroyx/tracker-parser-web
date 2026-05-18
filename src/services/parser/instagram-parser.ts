@@ -324,9 +324,8 @@ export function parseJsonFile(
   let followers: InstagramAccount[] = [];
   let following: InstagramAccount[] = [];
 
-  // Determine if this is a followers or following file based on structure
+  // Filename hint for legacy edge cases (both follower keys can appear)
   const isFollowersFile = /followers/i.test(fileName);
-  const isFollowingFile = /following/i.test(fileName);
 
   if (format === 'current-json') {
     if (Array.isArray(data)) {

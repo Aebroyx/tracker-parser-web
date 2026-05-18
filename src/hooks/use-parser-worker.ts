@@ -86,6 +86,65 @@ export function useParserWorker() {
     cancelRef.current = cancel;
   }, [ensureWorker]);
 
+  /**
+   * Parse a single file and return the result as a Promise.
+   * Used for sequential multi-file uploads (JSON/HTML modes).
+   */
+  const parseAsync = useCallback(
+    (file: File, fileType: 'json' | 'html' | 'zip'): Promise<ParsedExport> => {
+      if (cancelRef.current) {
+        cancelRef.current();
+        cancelRef.current = null;
+      }
+
+      setState({
+        status: 'loading',
+        stage: null,
+        progress: 0,
+        result: null,
+        error: null,
+      });
+
+      const worker = ensureWorker();
+
+      return new Promise((resolve, reject) => {
+        const { cancel } = parseFile(worker, file, fileType, {
+          onProgress: (stage, percent) => {
+            setState((prev) => ({
+              ...prev,
+              stage,
+              progress: percent,
+            }));
+          },
+          onSuccess: (result) => {
+            setState({
+              status: 'success',
+              stage: null,
+              progress: 100,
+              result,
+              error: null,
+            });
+            cancelRef.current = null;
+            resolve(result);
+          },
+          onError: (error) => {
+            setState({
+              status: 'error',
+              stage: null,
+              progress: 0,
+              result: null,
+              error,
+            });
+            cancelRef.current = null;
+            reject(error);
+          },
+        });
+        cancelRef.current = cancel;
+      });
+    },
+    [ensureWorker]
+  );
+
   const cancel = useCallback(() => {
     if (cancelRef.current) {
       cancelRef.current();
@@ -112,6 +171,7 @@ export function useParserWorker() {
   return {
     ...state,
     parse,
+    parseAsync,
     cancel,
     reset,
   };

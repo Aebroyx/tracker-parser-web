@@ -435,20 +435,22 @@ __tests__/
 
 ## 12. Implementation Checklist
 
-- [ ] Create `src/types/instagram.ts` with canonical types
-- [ ] Create `src/types/parser.ts` with Worker message types (incl. `PARSE_HTML`)
-- [ ] Implement `src/lib/parser/schemas.ts` (Zod validation schemas)
-- [ ] Implement `src/lib/parser/instagram-parser.ts` (JSON format detection + normalization)
-- [ ] Implement `src/lib/parser/html-parser.ts` (HTML parsing via DOMParser + heuristic extraction)
-- [ ] Implement `src/lib/parser/zip-handler.ts` (JSZip extraction + file discovery for .json AND .html)
-- [ ] Implement `src/lib/parser/worker.ts` (Web Worker entry point, routing JSON vs HTML)
-- [ ] Create `src/hooks/use-parser-worker.ts` (Worker lifecycle + message handling)
-- [ ] Create `src/hooks/use-file-upload.ts` (drag-and-drop + file input state + mode selector + replace logic)
-- [ ] Build `src/components/file-upload/DropZone.tsx`
-- [ ] Build `src/components/file-upload/ProgressBar.tsx`
-- [ ] Build `src/components/layout/PrivacyBanner.tsx`
-- [ ] Build `src/components/file-upload/HelpSection.tsx`
-- [ ] Integrate on `src/app/page.tsx` (landing page)
+> **Note:** Parser implementation lives under `src/services/parser/` (per `docs/ARCHITECTURE.md`), not `src/lib/parser/`.
+
+- [x] Create `src/types/instagram.ts` with canonical types
+- [x] Create `src/types/parser.ts` with Worker message types (incl. `PARSE_HTML`)
+- [x] Implement `src/services/parser/schemas.ts` (Zod validation schemas)
+- [x] Implement `src/services/parser/instagram-parser.ts` (JSON format detection + normalization)
+- [x] Implement `src/services/parser/html-parser.ts` (HTML parsing via DOMParser + heuristic extraction)
+- [x] Implement `src/services/parser/zip-handler.ts` (JSZip extraction + file discovery for .json AND .html)
+- [x] Implement `src/services/parser/worker.ts` (Web Worker entry point, routing JSON vs HTML)
+- [x] Create `src/hooks/use-parser-worker.ts` (Worker lifecycle + message handling)
+- [x] Create `src/hooks/use-file-upload.ts` (drag-and-drop + file input state + mode selector + replace logic)
+- [x] Build `src/components/file-upload/DropZone.tsx`
+- [ ] Build `src/components/file-upload/ProgressBar.tsx` (standalone optional component; **progress is implemented inline in `DropZone` per AC-21**)
+- [x] Build `src/components/layout/PrivacyBanner.tsx`
+- [x] Build `src/components/file-upload/HelpSection.tsx`
+- [x] Integrate on `src/app/page.tsx` (landing page)
 - [ ] Create test fixtures in `__tests__/fixtures/` (JSON + HTML + malformed)
 - [ ] Write unit tests for JSON parser module
 - [ ] Write unit tests for HTML parser module

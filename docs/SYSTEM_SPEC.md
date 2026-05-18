@@ -1,7 +1,7 @@
 # System Specification — Instagram Follower Tracker (Web)
 
-> **Document Status:** Draft v0.1  
-> **Last Updated:** 2026-05-12  
+> **Document Status:** Draft v0.3  
+> **Last Updated:** 2026-05-18  
 > **Author:** Spec-Driven Development Process
 
 ---
@@ -46,6 +46,7 @@ Build a **privacy-first, client-side only** web application that enables Instagr
 | **Heavy Parsing** | Web Workers | Offload JSON/HTML parsing of large exports to a background thread to keep the UI responsive. |
 | **Archive Handling** | JSZip | Client-side `.zip` extraction to access Instagram export files without server involvement. |
 | **HTML Parsing** | DOMParser (built-in) | Parse Instagram HTML exports in the Web Worker using the browser-native `DOMParser` API. No external dependency required. |
+| **Charts (Dashboard)** | Recharts | Line charts for follower/following timeline on the home dashboard; renders client-side only, no data leaves the browser. |
 | **Deployment** | Vercel (Standard) | Standard Next.js deployment on Vercel. No server compute for user data — Vercel only serves the app. Free tier sufficient. |
 
 ---
@@ -192,10 +193,10 @@ instagram-data-export/
 
 | Phase | Feature | Spec File | Status |
 |-------|---------|-----------|--------|
-| 1 | File Upload & JSON/HTML Parsing | `docs/features/01_file_processing.md` | 📝 Draft |
-| 2 | Snapshot Storage & Timeline | `docs/features/02_snapshot_timeline.md` | ⏳ Planned |
-| 3 | Snapshot Diff Engine | `docs/features/03_diff_engine.md` | ⏳ Planned |
-| 4 | Dashboard & Timeline Visualization | `docs/features/04_dashboard_ui.md` | ⏳ Planned |
+| 1 | File Upload & JSON/HTML Parsing | `docs/features/01_file_processing.md` | ✅ Complete |
+| 2 | Snapshot Storage & Timeline | `docs/features/02_snapshot_timeline.md` | ✅ Complete |
+| 3 | Snapshot Diff Engine | `docs/features/03_diff_engine.md` | ✅ Complete |
+| 4 | Dashboard & Timeline Visualization | `docs/features/04_dashboard_ui.md` | ✅ Complete |
 | 5 | Data Export & Clear Controls | `docs/features/05_data_management.md` | ⏳ Planned |
 
 ---

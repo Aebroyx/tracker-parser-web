@@ -1,7 +1,7 @@
 # Feature Spec: Snapshot Storage & Timeline (Phase 2)
 
-> **Document Status:** Skeleton — Pending Elaboration  
-> **Last Updated:** 2026-05-13  
+> **Document Status:** Complete v0.2  
+> **Last Updated:** 2026-05-18  
 > **Feature Phase:** 2  
 > **Parent Docs:** `docs/SYSTEM_SPEC.md`, `docs/ARCHITECTURE.md`  
 > **Depends On:** Phase 1 (`01_file_processing.md`)
@@ -40,27 +40,40 @@ Manage the persistence, retrieval, and lifecycle of parsed Instagram export snap
 | AC-S7 | Storage usage is displayed | UI shows approximate size (e.g., "Using ~5MB of browser storage") |
 | AC-S8 | "Clear All Data" button removes all snapshots | Click → confirmation → IndexedDB emptied |
 
+**Pruning UX (AC-S5 / US-2.5):** Before saving when the store already has 20 snapshots, the app shows a confirmation dialog (e.g. "Saving will remove your oldest snapshot … Continue?"). After save, `enforceLimit()` runs defensively in case of edge cases.
+
 ---
 
 ## 4. Implementation Scope
 
-### 4.1 Dexie.js Operations (`snapshot-store.ts`)
+### 4.1 Snapshot service (`src/services/snapshot/snapshot.service.ts`)
 
-- `saveSnapshot(data: ParsedExport): Promise<number>` — Save with auto-label, return ID
+Business logic lives under `services/` per `docs/ARCHITECTURE.md`. IndexedDB schema-only code remains in `src/lib/db/dexie-client.ts`.
+
+- `saveSnapshot(data: ParsedExport): Promise<number>` — Save with auto-label (`formatSnapshotLabel`), return Dexie id
 - `getAllSnapshots(): Promise<Snapshot[]>` — Sorted by `savedAt` ascending
-- `getLatestSnapshot(): Promise<Snapshot | null>`
+- `getLatestSnapshot(): Promise<Snapshot | null>` — Highest `savedAt`
 - `getSnapshotById(id: number): Promise<Snapshot | null>`
 - `deleteSnapshot(id: number): Promise<void>`
-- `updateLabel(id: number, label: string): Promise<void>`
+- `updateLabel(id: number, label: string): Promise<void>` — Trims empty → fallback to date label
 - `clearAllSnapshots(): Promise<void>`
 - `getSnapshotCount(): Promise<number>`
-- `enforceLimit(): Promise<Snapshot | null>` — Prune oldest if count > 20, return pruned snapshot
+- `enforceLimit(): Promise<Snapshot | null>` — If count > `MAX_SNAPSHOTS`, delete oldest by `savedAt`, return deleted row
+- `willExceedLimit(): Promise<{ exceeds: boolean; oldest: Snapshot | null }>` — True when count ≥ `MAX_SNAPSHOTS` (next save would require prune)
+- `getStorageEstimate(): Promise<{ usage: number; quota: number } | null>` — Wraps `navigator.storage.estimate()` when available
 
-### 4.2 React Hook (`use-snapshots.ts`)
+### 4.2 React Hook (`src/hooks/use-snapshots.ts`)
 
-- Wraps Dexie operations with React state
-- Provides `snapshots`, `latestSnapshot`, `snapshotCount`, `isLoading`
-- Uses Dexie's `liveQuery` for reactive updates when IndexedDB changes
+- Uses `dexie-react-hooks` **`useLiveQuery`** for reactive IndexedDB reads
+- Provides `snapshots`, `latestSnapshot`, `snapshotCount`, `isLoading`, `storage` (from `getStorageEstimate`)
+- Exposes actions: `save`, `rename`, `remove`, `clearAll` (wrapping the service)
+
+### 4.3 UI (Phase 2 minimal)
+
+- `SnapshotHistory` — Chronological list, inline rename, delete with confirmation
+- `StorageUsage` — Approximate browser storage line
+- `ConfirmDialog` — Shared modal for delete, clear-all, and pre-save prune warning
+- Smart landing on `/` and dedicated `/upload` per `docs/ARCHITECTURE.md` §8
 
 ---
 
@@ -72,12 +85,12 @@ _None — all decisions resolved in Phase 1 spec._
 
 ## 6. Implementation Checklist
 
-- [ ] Implement `src/lib/db/dexie-client.ts` (database definition)
-- [ ] Implement `src/lib/db/snapshot-store.ts` (CRUD operations)
-- [ ] Implement auto-label logic (date formatting)
-- [ ] Implement pruning logic (max 20, warn user)
-- [ ] Create `src/hooks/use-snapshots.ts` (reactive hook)
-- [ ] Build snapshot list UI component
-- [ ] Build "Clear All Data" confirmation dialog
-- [ ] Write unit tests for snapshot-store
+- [x] Implement `src/lib/db/dexie-client.ts` (database definition) — already in repo
+- [x] Implement `src/services/snapshot/snapshot.service.ts` (CRUD operations)
+- [x] Implement auto-label logic (date formatting via `formatSnapshotLabel`)
+- [x] Implement pruning logic (max 20, pre-save warning + `enforceLimit`)
+- [x] Create `src/hooks/use-snapshots.ts` (reactive hook with `useLiveQuery`)
+- [x] Build snapshot list UI component (`SnapshotHistory`)
+- [x] Build "Clear All Data" confirmation dialog (`ConfirmDialog` + header control)
+- [ ] Write unit tests for snapshot service
 - [ ] Write integration tests for save/delete/prune flow
