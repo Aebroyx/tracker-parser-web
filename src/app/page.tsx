@@ -1,31 +1,54 @@
 /**
- * Smart landing page.
- * - No snapshots: show upload zone (first-time experience)
- * - Has snapshots: show timeline dashboard (Phase 4)
- *
- * For Phase 1, this only shows the upload experience.
+ * Smart landing: no snapshots → upload; has snapshots → history + CTA.
  * See: docs/ARCHITECTURE.md §8
  */
 
 'use client';
 
-import { ModeSelector } from '@/components/file-upload/ModeSelector';
-import { DropZone } from '@/components/file-upload/DropZone';
-import { HelpSection } from '@/components/file-upload/HelpSection';
-import { PrivacyBanner } from '@/components/layout/PrivacyBanner';
-import { useFileUpload } from '@/hooks/use-file-upload';
-import { BarChart3 } from 'lucide-react';
+import { useState } from 'react';
+import Link from 'next/link';
+import { UploadPanel } from '@/components/file-upload/UploadPanel';
+import { SnapshotHistory } from '@/components/dashboard/SnapshotHistory';
+import { StorageUsage } from '@/components/dashboard/StorageUsage';
+import { AnalysisPanel } from '@/components/dashboard/AnalysisPanel';
+import { DiffSummary } from '@/components/dashboard/DiffSummary';
+import {
+  SnapshotPicker,
+  type SnapshotPickerValue,
+} from '@/components/dashboard/SnapshotPicker';
+import { useSnapshots } from '@/hooks/use-snapshots';
+import { useDiff } from '@/hooks/use-diff';
+import { BarChart3, Upload } from 'lucide-react';
 
 export default function HomePage() {
-  const upload = useFileUpload();
+  const [pickerIds, setPickerIds] = useState<SnapshotPickerValue>({});
 
-  const followerCount = upload.parserResult?.followers.length ?? 0;
-  const followingCount = upload.parserResult?.following.length ?? 0;
+  const {
+    snapshots,
+    snapshotCount,
+    isLoading,
+    storage,
+    rename,
+    remove,
+  } = useSnapshots();
+
+  const { analysis, diff, older, newer } = useDiff(pickerIds);
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <p className="text-sm text-text-secondary">Loading…</p>
+      </div>
+    );
+  }
+
+  if (snapshotCount === 0) {
+    return <UploadPanel showPrivacyBanner />;
+  }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-      <div className="w-full max-w-xl flex flex-col gap-6">
-        {/* Hero */}
+    <div className="flex-1 flex flex-col items-center px-4 py-8">
+      <div className="w-full max-w-3xl flex flex-col gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
           <div
             className="flex items-center justify-center w-14 h-14 rounded-2xl mb-1"
@@ -34,74 +57,60 @@ export default function HomePage() {
             <BarChart3 className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-text-primary">
-            Instagram Follower Tracker
+            Your backups
           </h1>
           <p className="text-sm text-text-secondary max-w-sm">
-            Upload your Instagram data export to track unfollowers, new followers, and analytics over time.
+            Snapshots are stored only in this browser. Upload a new export anytime
+            to grow your timeline.
           </p>
         </div>
 
-        {/* Privacy Banner */}
-        <PrivacyBanner />
+        <Link
+          href="/upload"
+          className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-sm font-medium text-white transition-all duration-150 hover:brightness-110"
+          style={{ background: 'var(--gradient-accent)' }}
+        >
+          <Upload className="w-4 h-4" />
+          Upload new backup
+        </Link>
 
-        {/* Mode Selector */}
-        <div className="flex justify-center">
-          <ModeSelector
-            mode={upload.mode}
-            onModeChange={upload.setMode}
-            disabled={upload.parserStatus === 'loading'}
+        <StorageUsage usage={storage?.usage ?? null} quota={storage?.quota ?? null} />
+
+        {snapshotCount >= 2 && (
+          <SnapshotPicker
+            snapshots={snapshots}
+            value={pickerIds}
+            onChange={setPickerIds}
           />
-        </div>
-
-        {/* Drop Zone */}
-        <DropZone
-          mode={upload.mode}
-          state={upload.dropZoneState}
-          onFiles={upload.handleFiles}
-          followerCount={followerCount}
-          followingCount={followingCount}
-          errorMessage={upload.parserError?.message}
-          progress={upload.parserProgress}
-          stageLabel={upload.parserStage ?? undefined}
-          onCancel={upload.cancel}
-          onSave={() => {
-            // Phase 2: Save to IndexedDB
-            // For now, log the result
-            if (upload.parserResult) {
-              console.log('Snapshot ready to save:', upload.parserResult);
-              alert(
-                `Parse complete!\n\n` +
-                `Followers: ${upload.parserResult.followers.length}\n` +
-                `Following: ${upload.parserResult.following.length}\n` +
-                `Format: ${upload.parserResult.meta.formatVersion}\n` +
-                `Duration: ${upload.parserResult.meta.parseDurationMs}ms\n` +
-                `Warnings: ${upload.parserResult.meta.warnings.length}`
-              );
-            }
-          }}
-        />
-
-        {/* Help Section */}
-        <HelpSection />
-
-        {/* Warnings (if any) */}
-        {upload.parserResult && upload.parserResult.meta.warnings.length > 0 && (
-          <div className="rounded-xl border border-accent-amber/20 bg-bg-secondary/50 p-4">
-            <p className="text-sm font-medium text-accent-amber mb-2">
-              ⚠️ {upload.parserResult.meta.warnings.length} warning{upload.parserResult.meta.warnings.length > 1 ? 's' : ''}
-            </p>
-            <ul className="space-y-1">
-              {upload.parserResult.meta.warnings.slice(0, 5).map((w, i) => (
-                <li key={i} className="text-xs text-text-secondary">{w}</li>
-              ))}
-              {upload.parserResult.meta.warnings.length > 5 && (
-                <li className="text-xs text-text-muted">
-                  and {upload.parserResult.meta.warnings.length - 5} more…
-                </li>
-              )}
-            </ul>
-          </div>
         )}
+
+        {snapshotCount === 1 && (
+          <p className="text-sm text-text-secondary text-center rounded-xl border border-border-subtle bg-bg-secondary/50 px-4 py-3">
+            Upload another backup to compare changes over time (non-followers, fans, and
+            gained / lost followers).
+          </p>
+        )}
+
+        {diff && older && newer && (
+          <DiffSummary
+            diff={diff}
+            olderLabel={older.label}
+            newerLabel={newer.label}
+          />
+        )}
+
+        {analysis && (
+          <AnalysisPanel
+            analysis={analysis}
+            snapshotLabel={newer?.label}
+          />
+        )}
+
+        <SnapshotHistory
+          snapshots={snapshots}
+          onRename={rename}
+          onDelete={remove}
+        />
       </div>
     </div>
   );

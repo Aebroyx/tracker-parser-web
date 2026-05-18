@@ -125,7 +125,7 @@ async function handleParseHtml(fileId: string, content: string, fileName: string
 
 // ─── ZIP Handler ─────────────────────────────────────────────────────────────
 
-async function handleParseZip(fileId: string, arrayBuffer: ArrayBuffer, fileName: string): Promise<void> {
+async function handleParseZip(fileId: string, arrayBuffer: ArrayBuffer): Promise<void> {
   const startTime = Date.now();
   const allWarnings: string[] = [];
 
@@ -139,10 +139,6 @@ async function handleParseZip(fileId: string, arrayBuffer: ArrayBuffer, fileName
   allWarnings.push(...extractWarnings);
 
   sendProgress(fileId, 'detecting', 35);
-
-  // Determine format from the first file found
-  const firstFile = followerFiles[0] || followingFiles[0];
-  const isHtml = firstFile.type === 'html';
 
   sendProgress(fileId, 'parsing', 40);
 
@@ -234,8 +230,7 @@ self.onmessage = async (event: MessageEvent<WorkerInboundMessage>) => {
       case 'PARSE_ZIP':
         await handleParseZip(
           payload.fileId,
-          (payload as { fileId: string; arrayBuffer: ArrayBuffer; fileName: string }).arrayBuffer,
-          payload.fileName
+          (payload as { fileId: string; arrayBuffer: ArrayBuffer; fileName: string }).arrayBuffer
         );
         break;
       case 'CANCEL':

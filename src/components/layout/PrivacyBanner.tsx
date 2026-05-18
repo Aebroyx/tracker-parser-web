@@ -14,8 +14,8 @@ export function PrivacyBanner() {
   const [isDismissed, setIsDismissed] = useState(true); // Default hidden to prevent flash
 
   useEffect(() => {
-    const dismissed = localStorage.getItem(PRIVACY_NOTICE_KEY);
-    setIsDismissed(dismissed === 'true');
+    const dismissed = localStorage.getItem(PRIVACY_NOTICE_KEY) === 'true';
+    queueMicrotask(() => setIsDismissed(dismissed));
   }, []);
 
   const handleDismiss = () => {

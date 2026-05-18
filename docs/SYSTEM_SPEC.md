@@ -1,7 +1,7 @@
 # System Specification — Instagram Follower Tracker (Web)
 
-> **Document Status:** Draft v0.1  
-> **Last Updated:** 2026-05-12  
+> **Document Status:** Draft v0.2  
+> **Last Updated:** 2026-05-18  
 > **Author:** Spec-Driven Development Process
 
 ---
@@ -192,9 +192,9 @@ instagram-data-export/
 
 | Phase | Feature | Spec File | Status |
 |-------|---------|-----------|--------|
-| 1 | File Upload & JSON/HTML Parsing | `docs/features/01_file_processing.md` | 📝 Draft |
-| 2 | Snapshot Storage & Timeline | `docs/features/02_snapshot_timeline.md` | ⏳ Planned |
-| 3 | Snapshot Diff Engine | `docs/features/03_diff_engine.md` | ⏳ Planned |
+| 1 | File Upload & JSON/HTML Parsing | `docs/features/01_file_processing.md` | ✅ Complete |
+| 2 | Snapshot Storage & Timeline | `docs/features/02_snapshot_timeline.md` | ✅ Complete |
+| 3 | Snapshot Diff Engine | `docs/features/03_diff_engine.md` | ✅ Complete |
 | 4 | Dashboard & Timeline Visualization | `docs/features/04_dashboard_ui.md` | ⏳ Planned |
 | 5 | Data Export & Clear Controls | `docs/features/05_data_management.md` | ⏳ Planned |
 

@@ -4,6 +4,7 @@
 
 import { BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { HeaderClearData } from '@/components/layout/HeaderClearData';
 
 export function Header() {
   return (
@@ -17,7 +18,8 @@ export function Header() {
         </span>
       </Link>
 
-      <nav className="flex items-center gap-1">
+      <nav className="flex items-center gap-2">
+        <HeaderClearData />
         <a
           href="https://github.com/Aebroyx/tracker-parser-web"
           target="_blank"

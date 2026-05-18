@@ -66,9 +66,9 @@ Build the main dashboard UI that serves as the application's home screen for ret
 - [ ] Build `src/components/dashboard/StatsBar.tsx`
 - [ ] Build `src/components/dashboard/DiffCard.tsx`
 - [ ] Build `src/components/dashboard/TimelineChart.tsx` (consider lightweight chart lib like Recharts)
-- [ ] Build `src/components/dashboard/SnapshotHistory.tsx`
+- [x] Build `src/components/dashboard/SnapshotHistory.tsx` _(Phase 2; extended in Phase 3 for timeline context)_
 - [ ] Build `src/components/dashboard/SnapshotPicker.tsx`
 - [ ] Implement smart landing logic in `src/app/page.tsx`
-- [ ] Wire up diff engine to dashboard state
+- [x] Wire up diff engine to dashboard state _(Phase 3: `useDiff`, `DiffSummary`, `AnalysisPanel`, `SnapshotPicker` on `/`)_
 - [ ] Responsive layout testing
 - [ ] Write component tests

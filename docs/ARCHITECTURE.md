@@ -352,7 +352,7 @@ The diff engine operates on **sets of usernames** derived from `ParsedExport` da
 2. **Cross-snapshot diff** — Compares two snapshots from different points in time (gained/lost followers)
 
 ```typescript
-// lib/diff/diff-engine.ts
+// services/diff/diff.service.ts — see src/services/diff/diff.service.ts
 
 /** Analysis of a single snapshot */
 interface SnapshotAnalysis {
