@@ -1,6 +1,6 @@
 /**
- * Smart landing: no snapshots → upload; has snapshots → history + CTA.
- * See: docs/ARCHITECTURE.md §8
+ * Smart landing: no snapshots → upload; 1 snapshot → overview + analysis; 2+ → full dashboard.
+ * See: docs/ARCHITECTURE.md §8, docs/features/04_dashboard_ui.md §3.1
  */
 
 'use client';
@@ -11,7 +11,9 @@ import { UploadPanel } from '@/components/file-upload/UploadPanel';
 import { SnapshotHistory } from '@/components/dashboard/SnapshotHistory';
 import { StorageUsage } from '@/components/dashboard/StorageUsage';
 import { AnalysisPanel } from '@/components/dashboard/AnalysisPanel';
-import { DiffSummary } from '@/components/dashboard/DiffSummary';
+import { StatsBar } from '@/components/dashboard/StatsBar';
+import { DiffCard } from '@/components/dashboard/DiffCard';
+import { TimelineChart } from '@/components/dashboard/TimelineChart';
 import {
   SnapshotPicker,
   type SnapshotPickerValue,
@@ -46,6 +48,8 @@ export default function HomePage() {
     return <UploadPanel showPrivacyBanner />;
   }
 
+  const showFullDashboard = snapshotCount >= 2;
+
   return (
     <div className="flex-1 flex flex-col items-center px-4 py-8">
       <div className="w-full max-w-3xl flex flex-col gap-8">
@@ -76,7 +80,7 @@ export default function HomePage() {
 
         <StorageUsage usage={storage?.usage ?? null} quota={storage?.quota ?? null} />
 
-        {snapshotCount >= 2 && (
+        {showFullDashboard && (
           <SnapshotPicker
             snapshots={snapshots}
             value={pickerIds}
@@ -91,13 +95,18 @@ export default function HomePage() {
           </p>
         )}
 
-        {diff && older && newer && (
-          <DiffSummary
+        {analysis && diff && older && newer ? (
+          <DiffCard
+            analysis={analysis}
             diff={diff}
             olderLabel={older.label}
             newerLabel={newer.label}
           />
-        )}
+        ) : analysis ? (
+          <StatsBar analysis={analysis} />
+        ) : null}
+
+        {showFullDashboard && <TimelineChart snapshots={snapshots} />}
 
         {analysis && (
           <AnalysisPanel
