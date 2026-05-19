@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useSnapshots } from '@/hooks/use-snapshots';
 import type { ParsedExport } from '@/types/instagram';
+import { APP_NAME, APP_TAGLINE } from '@/lib/utils/constants';
 import { BarChart3 } from 'lucide-react';
 
 export interface UploadPanelProps {
@@ -108,11 +109,10 @@ export function UploadPanel({
             <BarChart3 className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-text-primary">
-            Instagram Follower Tracker
+            {APP_NAME}
           </h1>
           <p className="text-sm text-text-secondary max-w-sm">
-            Upload your Instagram data export to track unfollowers, new
-            followers, and analytics over time.
+            {APP_TAGLINE}
           </p>
         </div>
 

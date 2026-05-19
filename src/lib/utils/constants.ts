@@ -3,6 +3,13 @@
  * See: docs/features/01_file_processing.md §9
  */
 
+// ─── Branding ────────────────────────────────────────────────────────────────
+
+export const APP_NAME = 'Instaghost Tracker';
+
+export const APP_TAGLINE =
+  'Upload your Instagram data export to track unfollowers, new followers, and analytics over time.';
+
 // ─── File Constraints ────────────────────────────────────────────────────────
 
 /** Max file size in bytes (500MB uncompressed) */
@@ -32,7 +39,7 @@ export const MAX_SNAPSHOTS = 20;
 export const PRIVACY_NOTICE_KEY = 'privacy-notice-dismissed';
 
 /** IndexedDB database name */
-export const DB_NAME = 'instagram-tracker';
+export const DB_NAME = 'instaghost-tracker';
 
 // ─── Accepted File Types ─────────────────────────────────────────────────────
 

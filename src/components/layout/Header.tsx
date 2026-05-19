@@ -5,6 +5,7 @@
 import { BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { HeaderClearData } from '@/components/layout/HeaderClearData';
+import { APP_NAME } from '@/lib/utils/constants';
 
 export function Header() {
   return (
@@ -14,7 +15,7 @@ export function Header() {
           <BarChart3 className="w-4 h-4 text-white" />
         </div>
         <span className="text-sm font-semibold text-text-primary group-hover:text-accent-primary transition-colors">
-          IG Tracker
+          {APP_NAME}
         </span>
       </Link>
 

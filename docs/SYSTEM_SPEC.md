@@ -1,14 +1,14 @@
-# System Specification — Instagram Follower Tracker (Web)
+# System Specification — Instaghost Tracker (Web)
 
 > **Document Status:** Draft v0.3  
-> **Last Updated:** 2026-05-18  
+> **Last Updated:** 2026-05-19  
 > **Author:** Spec-Driven Development Process
 
 ---
 
 ## 1. Vision Statement
 
-Build a **privacy-first, client-side only** web application that enables Instagram users to:
+Build **Instaghost Tracker** — a **privacy-first, client-side only** web application that enables Instagram users to:
 
 1. Upload their official Instagram data export (`.zip`, raw `.json`, or `.html` files).
 2. Parse and visualize their **followers** and **following** lists.

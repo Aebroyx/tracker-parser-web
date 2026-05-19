@@ -1,7 +1,7 @@
-# Design Language — Instagram Follower Tracker
+# Design Language — Instaghost Tracker
 
 > **Document Status:** Draft v0.1  
-> **Last Updated:** 2026-05-13  
+> **Last Updated:** 2026-05-19  
 > **Parent Spec:** `docs/SYSTEM_SPEC.md`
 
 ---
@@ -10,7 +10,7 @@
 
 **Dark. Minimal. Data-forward.**
 
-The application presents dense analytical data in a clean, distraction-free interface. Every element earns its place. The design favors negative space, subtle gradients, and muted tones — letting the data speak. No decorative elements, no skeuomorphism, no visual noise.
+Instaghost Tracker presents dense analytical data in a clean, distraction-free interface. Every element earns its place. The design favors negative space, subtle gradients, and muted tones — letting the data speak. No decorative elements, no skeuomorphism, no visual noise.
 
 ---
 
