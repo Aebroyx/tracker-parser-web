@@ -6,7 +6,13 @@
  */
 
 import type { InstagramAccount } from '@/types/instagram';
-import { normalizeUsername, deduplicateAccounts, validateProfileUrl } from './instagram-parser';
+import {
+  normalizeUsername,
+  deduplicateAccounts,
+  validateProfileUrl,
+  extractUsernameFromInstagramUrl,
+  looksLikeInstagramProfileUrl,
+} from './instagram-parser';
 
 /** ISO 8601 timestamp regex pattern */
 const ISO_TIMESTAMP_REGEX = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:?\d{2}/;
@@ -70,6 +76,27 @@ function stripHtmlTags(html: string): string {
 }
 
 /**
+ * Resolve username from an HTML anchor's href and text.
+ * Followers HTML uses plain usernames in link text; following HTML often uses
+ * full profile URLs in both href and text (including `/_u/` paths).
+ */
+function resolveHtmlUsername(href: string, rawTextContent: string): string | null {
+  const text = stripHtmlTags(rawTextContent);
+  if (!text) return extractUsernameFromInstagramUrl(href);
+
+  const hrefUsername = extractUsernameFromInstagramUrl(href);
+
+  if (looksLikeInstagramProfileUrl(text)) {
+    return hrefUsername ?? extractUsernameFromInstagramUrl(text);
+  }
+
+  const textUsername = normalizeUsername(text);
+  if (!textUsername) return hrefUsername;
+
+  return textUsername;
+}
+
+/**
  * Determine if an HTML file contains followers or following data.
  * Uses filename first, then content-based heuristics as fallback.
  */
@@ -127,7 +154,7 @@ export function parseHtmlAccounts(
       continue;
     }
 
-    const username = normalizeUsername(rawTextContent);
+    const username = resolveHtmlUsername(href, rawTextContent);
     if (!username) continue;
 
     const [profileUrl, warning] = validateProfileUrl(href, username);
