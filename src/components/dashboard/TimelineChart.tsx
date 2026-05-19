@@ -69,18 +69,18 @@ export function TimelineChart({ snapshots, className }: TimelineChartProps) {
               data={data}
               margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
             >
-              <CartesianGrid stroke="hsl(228, 10%, 20%)" strokeDasharray="3 3" />
+              <CartesianGrid stroke="var(--border-subtle)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="label"
-                tick={{ fill: 'hsl(220, 12%, 60%)', fontSize: 11 }}
+                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                 tickLine={false}
-                axisLine={{ stroke: 'hsl(228, 10%, 20%)' }}
+                axisLine={{ stroke: 'var(--border-subtle)' }}
                 interval="preserveStartEnd"
               />
               <YAxis
-                tick={{ fill: 'hsl(220, 12%, 60%)', fontSize: 11 }}
+                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                 tickLine={false}
-                axisLine={{ stroke: 'hsl(228, 10%, 20%)' }}
+                axisLine={{ stroke: 'var(--border-subtle)' }}
                 tickFormatter={(v) => formatNumber(Number(v))}
                 width={48}
               />
@@ -89,18 +89,18 @@ export function TimelineChart({ snapshots, className }: TimelineChartProps) {
                 type="monotone"
                 dataKey="followers"
                 name="Followers"
-                stroke="hsl(250, 70%, 60%)"
+                stroke="var(--accent-primary)"
                 strokeWidth={2}
-                dot={{ r: 3, fill: 'hsl(250, 70%, 60%)' }}
+                dot={{ r: 3, fill: 'var(--accent-primary)' }}
                 activeDot={{ r: 5 }}
               />
               <Line
                 type="monotone"
                 dataKey="following"
                 name="Following"
-                stroke="hsl(38, 80%, 55%)"
+                stroke="var(--accent-amber)"
                 strokeWidth={2}
-                dot={{ r: 3, fill: 'hsl(38, 80%, 55%)' }}
+                dot={{ r: 3, fill: 'var(--accent-amber)' }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>
@@ -109,16 +109,14 @@ export function TimelineChart({ snapshots, className }: TimelineChartProps) {
         <div className="flex flex-wrap justify-center gap-4 mt-3 text-xs text-text-secondary">
           <span className="inline-flex items-center gap-1.5">
             <span
-              className="inline-block w-3 h-0.5 rounded-full"
-              style={{ background: 'hsl(250, 70%, 60%)' }}
+              className="inline-block w-3 h-0.5 rounded-full bg-accent-primary"
               aria-hidden
             />
             Followers
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span
-              className="inline-block w-3 h-0.5 rounded-full"
-              style={{ background: 'hsl(38, 80%, 55%)' }}
+              className="inline-block w-3 h-0.5 rounded-full bg-accent-amber"
               aria-hidden
             />
             Following

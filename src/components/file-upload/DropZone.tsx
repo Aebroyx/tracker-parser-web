@@ -109,7 +109,7 @@ export function DropZone({
       className={cn(
         'relative flex flex-col items-center justify-center gap-4 p-8 rounded-xl border-2 border-dashed transition-all duration-150 cursor-pointer min-h-[220px]',
         effectiveState === 'idle' && 'border-border-default hover:border-border-default/80 bg-bg-secondary/30',
-        effectiveState === 'drag-over' && 'border-accent-primary bg-accent-glow scale-[1.01]',
+        effectiveState === 'drag-over' && 'border-accent-primary bg-bg-tertiary/60 scale-[1.01]',
         effectiveState === 'uploading' && 'border-border-default bg-bg-secondary/30 cursor-wait',
         effectiveState === 'parsing' && 'border-accent-primary/50 bg-bg-secondary/30 cursor-wait',
         effectiveState === 'incomplete' && 'border-accent-amber bg-bg-secondary/30',
@@ -169,7 +169,7 @@ export function DropZone({
                 className="h-full rounded-full transition-all duration-300 ease-in-out"
                 style={{
                   width: `${progress}%`,
-                  background: 'var(--gradient-accent)',
+                  background: 'var(--accent-primary)',
                 }}
               />
             </div>
@@ -212,8 +212,7 @@ export function DropZone({
                   e.stopPropagation();
                   onSave();
                 }}
-                className="mt-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-150 hover:brightness-110"
-                style={{ background: 'var(--gradient-accent)' }}
+                className="btn-primary mt-2 px-4 py-2 rounded-lg text-sm font-medium"
               >
                 Save Snapshot
               </button>

@@ -1,6 +1,6 @@
 # Design Language — Instaghost Tracker
 
-> **Document Status:** Draft v0.1  
+> **Document Status:** Draft v0.3  
 > **Last Updated:** 2026-05-19  
 > **Parent Spec:** `docs/SYSTEM_SPEC.md`
 
@@ -10,53 +10,114 @@
 
 **Dark. Minimal. Data-forward.**
 
-Instaghost Tracker presents dense analytical data in a clean, distraction-free interface. Every element earns its place. The design favors negative space, subtle gradients, and muted tones — letting the data speak. No decorative elements, no skeuomorphism, no visual noise.
+Instaghost Tracker presents dense analytical data in a clean, distraction-free interface. Every element earns its place. The design favors **neutral dark surfaces**, negative space, and **spectral purple accents** on interactive elements — letting the data speak. No decorative elements, no skeuomorphism, no visual noise.
 
 ---
 
 ## 2. Color System
 
+### 2.0 Ghost Aesthetic
+
+The palette should feel **phantom, not neon**. Think moonlit fog, a faint lavender glow in the dark, and surfaces that disappear into the background — not saturated purple-to-purple gradients.
+
+| Principle | Guideline |
+|-----------|-----------|
+| **Mist over saturation** | Backgrounds stay **achromatic gray-black** — ghost purple appears only in accents and halos, never in surfaces. |
+| **Spectral accents** | Purple accents are pale, cool, and slightly luminous — like light through fog. |
+| **Soft depth** | Gradients suggest atmosphere (mist settling, a faint glow), not decoration. |
+| **Restrained contrast** | Text stays readable, but borders and fills stay whisper-quiet. |
+
+> **Rule:** If a color reads as “brand purple,” it is too loud. Ghost purple should feel like it is barely there.
+
 ### 2.1 Base Palette (Dark Mode Default)
+
+Neutral **achromatic dark** base — same lightness steps as v1, but with **0% saturation** so surfaces read as true gray-black, not blue or purple. Ghost purple is reserved for accents (§2.2).
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--bg-primary` | `hsl(228, 16%, 8%)` | Page background — near-black with a cool blue undertone |
-| `--bg-secondary` | `hsl(228, 14%, 12%)` | Card/panel backgrounds |
-| `--bg-tertiary` | `hsl(228, 12%, 16%)` | Elevated surfaces (modals, popovers, hover states) |
-| `--border-subtle` | `hsl(228, 10%, 20%)` | Card borders, dividers — barely visible |
-| `--border-default` | `hsl(228, 10%, 28%)` | Input borders, interactive element outlines |
-| `--text-primary` | `hsl(220, 20%, 95%)` | Main body text — off-white, never pure white |
-| `--text-secondary` | `hsl(220, 12%, 60%)` | Labels, descriptions, secondary info |
-| `--text-muted` | `hsl(220, 10%, 40%)` | Placeholder text, disabled states |
+| `--bg-primary` | `hsl(0, 0%, 8%)` | Page background — flat neutral near-black |
+| `--bg-secondary` | `hsl(0, 0%, 12%)` | Card/panel backgrounds |
+| `--bg-tertiary` | `hsl(0, 0%, 16%)` | Elevated surfaces (modals, popovers, hover states) |
+| `--border-subtle` | `hsl(0, 0%, 20%)` | Card borders, dividers — barely visible |
+| `--border-default` | `hsl(0, 0%, 28%)` | Input borders, interactive element outlines |
+| `--text-primary` | `hsl(0, 0%, 95%)` | Main body text — off-white, never pure white |
+| `--text-secondary` | `hsl(0, 0%, 60%)` | Labels, descriptions, secondary info |
+| `--text-muted` | `hsl(0, 0%, 40%)` | Placeholder text, disabled states |
 
 ### 2.2 Accent Palette
 
+Purple is kept, but shifted from **vivid violet** to **spectral lavender** — lighter, cooler, and lower saturation.
+
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--accent-primary` | `hsl(250, 70%, 60%)` | Primary CTA buttons, active states — muted violet |
-| `--accent-primary-hover` | `hsl(250, 70%, 55%)` | Button hover |
-| `--accent-glow` | `hsla(250, 70%, 60%, 0.15)` | Subtle glow behind primary elements |
-| `--accent-green` | `hsl(155, 60%, 50%)` | Positive metrics — gained followers, success states |
-| `--accent-red` | `hsl(0, 65%, 55%)` | Negative metrics — lost followers, errors |
-| `--accent-amber` | `hsl(38, 80%, 55%)` | Warnings, incomplete states |
+| `--accent-primary` | `hsl(265, 42%, 72%)` | Primary CTAs, active states — soft phantom lavender |
+| `--accent-primary-hover` | `hsl(265, 45%, 66%)` | Link hover, inline accent emphasis — not primary button fill |
+| `--accent-glow` | `hsla(265, 50%, 78%, 0.10)` | Faint ectoplasm glow on focus/selection — avoid large-area fills |
+| `--accent-spectral` | `hsl(275, 35%, 82%)` | Highlights, focus rings, subtle “haunting” shimmer |
+| `--text-on-accent` | `hsl(0, 0%, 12%)` | Text on pale `--gradient-accent` buttons |
+| `--accent-green` | `hsl(155, 45%, 52%)` | Positive metrics — gained followers, success states (desaturated) |
+| `--accent-red` | `hsl(0, 55%, 58%)` | Negative metrics — lost followers, errors (desaturated) |
+| `--accent-amber` | `hsl(38, 65%, 58%)` | Warnings, incomplete states (desaturated) |
 
 ### 2.3 Gradient Tokens
 
+Gradients should read as **atmosphere**, not as a bold brand stripe. Prefer low saturation, 2–3 stops max, and avoid high-chroma purple pairs.
+
 ```css
-/* Hero/header gradient — subtle, not flashy */
---gradient-hero: linear-gradient(135deg, hsl(250, 30%, 12%) 0%, hsl(228, 16%, 8%) 100%);
+/* Page shell — neutral gray-black depth (no hue) */
+--gradient-hero: linear-gradient(
+  135deg,
+  hsl(0, 0%, 10%) 0%,
+  hsl(0, 0%, 8%) 100%
+);
 
-/* Card highlight gradient — barely perceptible depth */
---gradient-card: linear-gradient(180deg, hsl(228, 14%, 13%) 0%, hsl(228, 14%, 11%) 100%);
+/* Card depth — barely perceptible lift on neutral dark */
+--gradient-card: linear-gradient(
+  180deg,
+  hsl(0, 0%, 13%) 0%,
+  hsl(0, 0%, 11%) 100%
+);
 
-/* Accent gradient — for primary CTAs only */
---gradient-accent: linear-gradient(135deg, hsl(250, 70%, 58%) 0%, hsl(270, 60%, 52%) 100%);
+/* Primary accent — spectral glow, not a saturated CTA ramp */
+--gradient-accent: linear-gradient(
+  180deg,
+  hsl(265, 38%, 76%) 0%,
+  hsl(272, 32%, 68%) 100%
+);
 
-/* Stat card subtle shimmer */
---gradient-stat: linear-gradient(135deg, hsla(250, 40%, 20%, 0.3) 0%, transparent 60%);
+/* Stat card highlight — neutral lift only */
+--gradient-stat: linear-gradient(
+  135deg,
+  hsla(0, 0%, 100%, 0.04) 0%,
+  transparent 60%
+);
+
+/* Optional hero icon halo — very soft radial glow */
+--gradient-spectral-halo: radial-gradient(
+  circle at 50% 40%,
+  hsla(265, 45%, 78%, 0.14) 0%,
+  hsla(265, 30%, 60%, 0.05) 45%,
+  transparent 70%
+);
 ```
 
-> **Rule:** Gradients are always subtle. Never more than 2 stops. Never saturated enough to be "flashy." They add depth, not decoration.
+> **Rules for ghost gradients:**
+> - **Background gradients stay neutral** (achromatic gray-black only). Purple tints belong in accent/halos — not page or card fills.
+> - No high-saturation purple-to-magenta ramps on CTAs.
+> - Prefer **vertical** (`180deg`) gradients for mist; use diagonal only for faint stat wisps.
+> - Accent gradients stay **light and desaturated** — they should glow, not shout.
+> - Use `--gradient-spectral-halo` sparingly (nav mark 👻, upload hero icon) — one soft glow is enough.
+
+### 2.4 Semantic Color Usage
+
+| Context | Token(s) | Notes |
+|---------|----------|-------|
+| Page shell | `--bg-primary` | Flat neutral dark fill — avoid purple-tinted page gradients |
+| Cards & panels | `--bg-secondary`, `--gradient-card`, `--border-subtle` | No drop shadows; depth from tone only |
+| Primary actions | `--gradient-accent`, `.btn-primary` | Pale spectral fill; hover brightens + glow ring + lift — never deep purple |
+| Links & active nav | `--accent-primary`, `--accent-primary-hover` | Solid spectral lavender |
+| Positive / negative stats | `--accent-green`, `--accent-red` | Keep semantic colors muted so purple remains the mood |
+| Selection highlight | `--accent-glow` | Text selection should feel like a soft purple mist |
 
 ---
 
@@ -139,12 +200,13 @@ Base unit: `4px`. All spacing is a multiple of this.
 ### 5.2 Buttons
 
 **Primary:**
-- Background: `--gradient-accent`
-- Text: white
+- Background: `--gradient-accent` (spectral lavender glow — not a loud purple ramp)
+- Text: `hsl(0, 0%, 12%)` — dark neutral for contrast on pale ghost buttons
 - Padding: `8px 16px`
 - Border radius: `8px`
-- Hover: brightness increases slightly (`filter: brightness(1.1)`)
-- No box-shadow — only a subtle `--accent-glow` on focus
+- Hover: **same pale gradient** — brighten slightly + soft spectral ring/glow + lift (`translateY(-1px)`). Never darken to deep purple.
+- Active: settle back down with reduced glow
+- Focus: `--accent-glow` only — no box-shadow stacks
 
 **Secondary/Ghost:**
 - Background: transparent
@@ -170,12 +232,13 @@ Base unit: `4px`. All spacing is a multiple of this.
 
 ### 5.5 Stat Cards
 
-- Background: `--bg-secondary` with directional `--gradient-stat`
+- Background: `--bg-secondary` with `--gradient-stat` + `--gradient-card` (neutral lift only)
 - Large number in `h2` weight
 - Label below in `body-sm` + `--text-secondary`
 - Positive values: `--accent-green`
 - Negative values: `--accent-red`
 - Neutral values: `--text-primary`
+- Optional: very faint `--accent-spectral` top border (1px) for a spectral edge — use on one featured stat at most
 
 ---
 
@@ -185,7 +248,7 @@ Base unit: `4px`. All spacing is a multiple of this.
 |---------|-----------|----------|--------|
 | Page transitions | Fade in | 200ms | `ease-out` |
 | Card hover border | Color transition | 150ms | `ease` |
-| Button hover | Brightness shift | 150ms | `ease` |
+| Button hover | Brighten + spectral glow + lift | 150ms | `ease` |
 | Progress bar | Width expansion | 300ms | `ease-in-out` |
 | Drop zone drag-over | Border pulse | 600ms | `ease-in-out` (infinite) |
 | Stat number count-up | Number increment | 400ms | `ease-out` |
@@ -197,11 +260,12 @@ Base unit: `4px`. All spacing is a multiple of this.
 
 ## 7. Iconography
 
-- Library: **Lucide React** (consistent with tech stack)
+- **Brand mark (header nav):** 👻 ghost emoji inside `.spectral-icon-wrap` — the only emoji in the UI
+- **All other UI icons:** **Lucide React** (consistent with tech stack)
 - Size: `16px` (inline), `20px` (standalone), `24px` (hero)
-- Color: inherits from text color by default
+- Color: inherits from text color by default; accent icons use `--accent-primary`
 - Stroke width: 1.5px (Lucide default)
-- Never use filled icons — outline only
+- Lucide icons are outline only — no filled variants
 
 ---
 

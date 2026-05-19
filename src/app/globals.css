@@ -1,31 +1,55 @@
 @import "tailwindcss";
 
-/* ─── Design Tokens (DESIGN_LANGUAGE.md) ─────────────────────────── */
+/* ─── Design Tokens (DESIGN_LANGUAGE.md v0.2) ─────────────────────── */
 
 :root {
-  /* Base palette — dark mode default */
-  --bg-primary: hsl(228, 16%, 8%);
-  --bg-secondary: hsl(228, 14%, 12%);
-  --bg-tertiary: hsl(228, 12%, 16%);
-  --border-subtle: hsl(228, 10%, 20%);
-  --border-default: hsl(228, 10%, 28%);
-  --text-primary: hsl(220, 20%, 95%);
-  --text-secondary: hsl(220, 12%, 60%);
-  --text-muted: hsl(220, 10%, 40%);
+  /* Base palette — neutral achromatic dark (no blue/purple cast) */
+  --bg-primary: hsl(0, 0%, 8%);
+  --bg-secondary: hsl(0, 0%, 12%);
+  --bg-tertiary: hsl(0, 0%, 16%);
+  --border-subtle: hsl(0, 0%, 20%);
+  --border-default: hsl(0, 0%, 28%);
+  --text-primary: hsl(0, 0%, 95%);
+  --text-secondary: hsl(0, 0%, 60%);
+  --text-muted: hsl(0, 0%, 40%);
 
-  /* Accent palette */
-  --accent-primary: hsl(250, 70%, 60%);
-  --accent-primary-hover: hsl(250, 70%, 55%);
-  --accent-glow: hsla(250, 70%, 60%, 0.15);
-  --accent-green: hsl(155, 60%, 50%);
-  --accent-red: hsl(0, 65%, 55%);
-  --accent-amber: hsl(38, 80%, 55%);
+  /* Accent palette — spectral lavender */
+  --accent-primary: hsl(265, 42%, 72%);
+  --accent-primary-hover: hsl(265, 45%, 66%);
+  --accent-glow: hsla(265, 50%, 78%, 0.10);
+  --accent-spectral: hsl(275, 35%, 82%);
+  --accent-green: hsl(155, 45%, 52%);
+  --accent-red: hsl(0, 55%, 58%);
+  --accent-amber: hsl(38, 65%, 58%);
+  --text-on-accent: hsl(0, 0%, 12%);
 
-  /* Gradients */
-  --gradient-hero: linear-gradient(135deg, hsl(250, 30%, 12%) 0%, hsl(228, 16%, 8%) 100%);
-  --gradient-card: linear-gradient(180deg, hsl(228, 14%, 13%) 0%, hsl(228, 14%, 11%) 100%);
-  --gradient-accent: linear-gradient(135deg, hsl(250, 70%, 58%) 0%, hsl(270, 60%, 52%) 100%);
-  --gradient-stat: linear-gradient(135deg, hsla(250, 40%, 20%, 0.3) 0%, transparent 60%);
+  /* Background gradients — neutral depth only */
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(0, 0%, 10%) 0%,
+    hsl(0, 0%, 8%) 100%
+  );
+  --gradient-card: linear-gradient(
+    180deg,
+    hsl(0, 0%, 13%) 0%,
+    hsl(0, 0%, 11%) 100%
+  );
+  --gradient-accent: linear-gradient(
+    180deg,
+    hsl(265, 38%, 76%) 0%,
+    hsl(272, 32%, 68%) 100%
+  );
+  --gradient-stat: linear-gradient(
+    135deg,
+    hsla(0, 0%, 100%, 0.04) 0%,
+    transparent 60%
+  );
+  --gradient-spectral-halo: radial-gradient(
+    circle at 50% 40%,
+    hsla(265, 45%, 78%, 0.14) 0%,
+    hsla(265, 30%, 60%, 0.05) 45%,
+    transparent 70%
+  );
 }
 
 @theme inline {
@@ -40,9 +64,11 @@
   --color-accent-primary: var(--accent-primary);
   --color-accent-primary-hover: var(--accent-primary-hover);
   --color-accent-glow: var(--accent-glow);
+  --color-accent-spectral: var(--accent-spectral);
   --color-accent-green: var(--accent-green);
   --color-accent-red: var(--accent-red);
   --color-accent-amber: var(--accent-amber);
+  --color-text-on-accent: var(--text-on-accent);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
 }
@@ -50,11 +76,40 @@
 /* ─── Base Styles ─────────────────────────────────────────────────── */
 
 body {
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Component Utilities ─────────────────────────────────────────── */
+
+.btn-primary {
+  background: var(--gradient-accent);
+  color: var(--text-on-accent);
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    filter 150ms ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.07);
+  box-shadow:
+    0 0 0 1px hsla(275, 45%, 88%, 0.55),
+    0 0 20px hsla(265, 50%, 78%, 0.32);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  filter: brightness(1.02);
+  transform: translateY(0);
+  box-shadow: 0 0 0 1px hsla(275, 45%, 88%, 0.35);
+}
+
+.spectral-icon-wrap {
+  background: var(--gradient-spectral-halo);
 }
 
 /* ─── Selection ───────────────────────────────────────────────────── */

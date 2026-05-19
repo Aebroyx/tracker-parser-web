@@ -102,11 +102,8 @@ export function UploadPanel({
         )}
 
         <div className="flex flex-col items-center gap-3 text-center">
-          <div
-            className="flex items-center justify-center w-14 h-14 rounded-2xl mb-1"
-            style={{ background: 'var(--gradient-accent)' }}
-          >
-            <BarChart3 className="w-7 h-7 text-white" />
+          <div className="spectral-icon-wrap flex items-center justify-center w-14 h-14 rounded-2xl mb-1">
+            <BarChart3 className="w-7 h-7 text-accent-primary" />
           </div>
           <h1 className="text-2xl font-bold text-text-primary">
             {APP_NAME}
