@@ -87,6 +87,25 @@ export function detectJsonFormat(data: unknown): JsonFormatVersion {
 
 // ─── Normalization ───────────────────────────────────────────────────────────
 
+/** First path segments that are Instagram routes, not profile usernames. */
+const RESERVED_IG_PATH_SEGMENTS = new Set([
+  'p',
+  'reel',
+  'reels',
+  'stories',
+  'explore',
+  'accounts',
+  'direct',
+  'about',
+  'legal',
+  'developer',
+  'directory',
+  'press',
+  'api',
+  'tv',
+  'web',
+]);
+
 /**
  * Normalize a username: trim whitespace, convert to lowercase.
  */
@@ -95,8 +114,46 @@ export function normalizeUsername(raw: string): string {
 }
 
 /**
+ * True when text looks like an Instagram profile URL (not a plain @handle).
+ */
+export function looksLikeInstagramProfileUrl(text: string): boolean {
+  const trimmed = text.trim();
+  return /^https?:\/\//i.test(trimmed) && /instagram\.com/i.test(trimmed);
+}
+
+/**
+ * Extract a profile username from an Instagram URL.
+ * Supports canonical paths (`/username`) and mobile/deep-link paths (`/_u/username`).
+ */
+export function extractUsernameFromInstagramUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    if (host !== 'instagram.com') return null;
+
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    if (segments.length === 0) return null;
+
+    if (segments[0] === '_u' && segments.length >= 2) {
+      return normalizeUsername(segments[1]);
+    }
+
+    if (
+      segments.length === 1 &&
+      !RESERVED_IG_PATH_SEGMENTS.has(segments[0].toLowerCase())
+    ) {
+      return normalizeUsername(segments[0]);
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Validate and normalize a profile URL.
- * Returns [normalizedUrl, warning?]
+ * Returns [canonicalUrl, warning?]
  */
 export function validateProfileUrl(
   url: string | undefined,
@@ -108,16 +165,22 @@ export function validateProfileUrl(
     return [constructed, null];
   }
 
-  // Check if valid URL
   try {
     const parsed = new URL(url);
-    if (!parsed.href.startsWith(INSTAGRAM_BASE_URL)) {
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    if (host !== 'instagram.com') {
       return [constructed, `Unexpected profile URL domain for @${username}`];
     }
-    if (!parsed.pathname.toLowerCase().includes(username)) {
-      return [url, `Profile URL doesn't match username for @${username}`];
+
+    const urlUsername = extractUsernameFromInstagramUrl(url);
+    if (!urlUsername) {
+      return [constructed, `Malformed profile URL for @${username}, using constructed URL`];
     }
-    return [url, null];
+    if (urlUsername !== username) {
+      return [constructed, `Profile URL doesn't match username for @${username}`];
+    }
+
+    return [constructed, null];
   } catch {
     return [constructed, `Malformed profile URL for @${username}, using constructed URL`];
   }

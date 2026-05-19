@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { APP_NAME } from "@/lib/utils/constants";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,9 +18,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IG Tracker — Instagram Follower Analytics",
+  title: `${APP_NAME} — Instagram Follower Analytics`,
   description:
-    "Privacy-first Instagram follower tracker. Upload your data export to track unfollowers, new followers, and analytics over time. 100% client-side — your data never leaves your browser.",
+    "Privacy-first Instagram follower analytics with Instaghost Tracker. Upload your data export to track unfollowers, new followers, and changes over time. 100% client-side — your data never leaves your browser.",
   keywords: [
     "instagram",
     "follower tracker",

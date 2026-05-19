@@ -43,8 +43,7 @@ export function StatCard({
     <div
       className={cn(
         'rounded-xl border border-border-subtle p-4 min-w-0',
-        'bg-bg-secondary/80',
-        '[background-image:var(--gradient-stat)]',
+        'bg-bg-secondary/80 [background-image:var(--gradient-stat),var(--gradient-card)]',
         className
       )}
     >

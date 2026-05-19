@@ -1,14 +1,14 @@
-# Instagram Follower Tracker
+# Instaghost Tracker
 
-A privacy-first, 100% client-side web application that allows users to upload their Instagram data exports to track followers, unfollowers, and analytics over time.
+A privacy-first, 100% client-side web application that lets you upload your Instagram data exports to track unfollowers, new followers, and analytics over time.
 
-![IG Tracker UI](https://via.placeholder.com/800x400?text=Instagram+Follower+Tracker)
+![Instaghost Tracker UI](https://via.placeholder.com/800x400?text=Instaghost+Tracker)
 
 ## 🌟 Overview
 
 Instagram doesn't tell you who unfollowed you. Third-party apps that ask for your Instagram password are often scams, violate terms of service, and can get your account banned. 
 
-**This app is different.** 
+**Instaghost Tracker is different.** 
 
 You download your official data export directly from Instagram and drop it into this web app. All processing happens locally in your browser. **Your data never leaves your device.**
 
@@ -19,7 +19,7 @@ You download your official data export directly from Instagram and drop it into 
 - **📂 Multi-Format Support:** 
   - Drag-and-drop your raw `.zip` export directly.
   - Or upload individual `.json` or `.html` follower/following files.
-- **📈 Timeline Analytics (Coming Soon):** Compare multiple data exports over time to see exactly *who* unfollowed you, *who* you aren't following back, and your net follower growth.
+- **📈 Timeline Analytics:** Compare multiple data exports over time to see exactly *who* unfollowed you, *who* you aren't following back, and your net follower growth.
 - **🌙 Dark Minimalist UI:** A premium, fully responsive interface built with Tailwind CSS v4.
 
 ## 🏗️ Architecture & Tech Stack
@@ -73,7 +73,7 @@ For a deep dive into the architecture, state management, and file processing alg
 3. Scroll down to **Download your information**.
 4. Request a download. **Make sure to select JSON or HTML format.**
 5. Once Instagram emails you the file, download the `.zip` archive.
-6. Drag and drop that `.zip` file directly into this app!
+6. Drag and drop that `.zip` file directly into Instaghost Tracker!
 
 ## 📄 License
 

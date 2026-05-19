@@ -175,8 +175,12 @@ function parseHtmlExport(htmlString: string): InstagramAccount[]
 
 1. Find all <a> tags where href contains 'instagram.com/' using regex
 2. For each <a> tag match:
-   a. Extract username by stripping HTML tags from the matched text content → username
-   b. Extract href attribute → profileUrl
+   a. Resolve username from href + link text:
+      - Followers HTML: link text is the handle (e.g. `mioarchia`), href is `https://www.instagram.com/mioarchia`
+      - Following HTML: link text is often the full URL (e.g. `https://www.instagram.com/_u/mioarchia`);
+        extract username from href via `extractUsernameFromInstagramUrl()` (supports `/_u/` paths)
+      - If link text looks like an Instagram URL, prefer username from href (or from text URL as fallback)
+   b. Normalize profile URL to canonical `https://www.instagram.com/{username}` (same as JSON exports)
    c. Search a text window around the match (e.g. ±500 chars) for an ISO 8601 timestamp:
       - Regex: /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:?\d{2}/
       - If found → parse to Unix timestamp
@@ -185,6 +189,13 @@ function parseHtmlExport(htmlString: string): InstagramAccount[]
    e. Construct InstagramAccount { username, profileUrl, timestamp }
 3. Return deduplicated array (latest timestamp wins on conflict)
 ```
+
+**HTML export variants:**
+
+| File | Typical link text | Typical href | Notes |
+|------|-------------------|--------------|-------|
+| `followers_*.html` | `username` | `https://www.instagram.com/username` | Username in anchor text |
+| `following.html` | Full profile URL | `https://www.instagram.com/_u/username` | May also have `<h2>username</h2>` above the link; parser reads username from URL path |
 
 **Determining followers vs. following from HTML:**
 
@@ -249,9 +260,10 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 | Check | Pattern | Action on Failure |
 |-------|---------|-------------------|
 | URL is present | `profileUrl !== null && profileUrl !== ''` | Set `profileUrl` to `https://www.instagram.com/${username}` (constructed) |
-| URL matches Instagram domain | `profileUrl` starts with `https://www.instagram.com/` | Log warning: "Unexpected profile URL domain for @{username}" |
-| URL contains the username | URL path includes the `username` value | Log warning: "Profile URL doesn't match username for @{username}" |
+| URL matches Instagram domain | Host is `instagram.com` | Log warning: "Unexpected profile URL domain for @{username}" |
+| URL resolves to username | `extractUsernameFromInstagramUrl()` matches entry username (supports `/username` and `/_u/username`) | Log warning: "Profile URL doesn't match username for @{username}" |
 | URL is well-formed | Valid URL per `new URL()` constructor | Replace with constructed URL, log warning |
+| Canonical output | Always | Stored `profileUrl` is `https://www.instagram.com/${username}` so HTML and JSON snapshots diff consistently |
 
 ### 7.2 Warning Behavior
 

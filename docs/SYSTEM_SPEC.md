@@ -1,14 +1,14 @@
-# System Specification — Instagram Follower Tracker (Web)
+# System Specification — Instaghost Tracker (Web)
 
 > **Document Status:** Draft v0.3  
-> **Last Updated:** 2026-05-18  
+> **Last Updated:** 2026-05-19  
 > **Author:** Spec-Driven Development Process
 
 ---
 
 ## 1. Vision Statement
 
-Build a **privacy-first, client-side only** web application that enables Instagram users to:
+Build **Instaghost Tracker** — a **privacy-first, client-side only** web application that enables Instagram users to:
 
 1. Upload their official Instagram data export (`.zip`, raw `.json`, or `.html` files).
 2. Parse and visualize their **followers** and **following** lists.
@@ -179,11 +179,18 @@ instagram-data-export/
 
 > **WARNING: Unstable class names.** Instagram frequently changes CSS class names in HTML exports (e.g., `_a6-b`, `_a6-o`, `_a6-p`). The HTML parser **must not** rely on class names. Instead, it should use a **structural heuristic** approach:
 > 1. Find all `<a>` tags with `href` containing `instagram.com/`
-> 2. Extract the username from the `<a>` tag's text content
-> 3. Look for sibling/adjacent text nodes containing ISO 8601 timestamps
-> 4. Fall back to parent container iteration if the heuristic fails
+> 2. Resolve the username from `href` and link text (followers: plain handle in text; following: often full URL with `/_u/{username}` path — extract from URL, not raw link text)
+> 3. Normalize `profileUrl` to `https://www.instagram.com/{username}` (same canonical form as JSON) for consistent diffing
+> 4. Look for sibling/adjacent text nodes containing ISO 8601 timestamps
 >
 > See `docs/features/01_file_processing.md` §5.3 for the full HTML normalization algorithm.
+
+**`following.html` variant (differs from followers):**
+```html
+<h2>username</h2>
+<a href="https://www.instagram.com/_u/username">https://www.instagram.com/_u/username</a>
+```
+The parser extracts `username` from the URL path (`/_u/` segment), not from link text.
 
 > **IMPORTANT:** The parser must auto-detect the format (JSON current, JSON legacy, or HTML) and normalize all three into a unified internal schema. See `docs/ARCHITECTURE.md` §3 for the canonical data model.
 

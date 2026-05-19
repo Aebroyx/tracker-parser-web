@@ -1,4 +1,4 @@
-# Architecture — Instagram Follower Tracker (Web)
+# Architecture — Instaghost Tracker (Web)
 
 > **Document Status:** Draft v0.1  
 > **Last Updated:** 2026-05-12  
@@ -321,7 +321,7 @@ class TrackerDatabase extends Dexie {
   snapshots!: Table<Snapshot>;
 
   constructor() {
-    super('instagram-tracker');
+    super('instaghost-tracker');
     this.version(1).stores({
       // Indexed fields only — Dexie stores the full object regardless
       snapshots: '++id, savedAt',

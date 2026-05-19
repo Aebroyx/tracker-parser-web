@@ -90,16 +90,11 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-150 hover:brightness-110',
+              'px-4 py-2 rounded-lg text-sm font-medium',
               destructive
-                ? 'bg-accent-red hover:brightness-110'
-                : ''
+                ? 'bg-accent-red text-white transition-all duration-150 hover:brightness-[1.03]'
+                : 'btn-primary'
             )}
-            style={
-              destructive
-                ? undefined
-                : { background: 'var(--gradient-accent)' }
-            }
           >
             {confirmLabel}
           </button>

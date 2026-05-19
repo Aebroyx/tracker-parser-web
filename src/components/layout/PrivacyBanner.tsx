@@ -26,7 +26,7 @@ export function PrivacyBanner() {
   if (isDismissed) return null;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-accent-primary/20 bg-accent-glow">
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-accent-primary/20 bg-bg-secondary">
       <Shield className="w-5 h-5 text-accent-primary shrink-0" />
       <p className="flex-1 text-sm text-text-secondary">
         <span className="text-text-primary font-medium">Your data never leaves your device.</span>{' '}
