@@ -20,6 +20,7 @@ You download your official data export directly from Instagram and drop it into 
   - Drag-and-drop your raw `.zip` export directly.
   - Or upload individual `.json` or `.html` follower/following files.
 - **📈 Timeline Analytics:** Compare multiple data exports over time to see exactly *who* unfollowed you, *who* you aren't following back, and your net follower growth.
+- **📥 Data Export:** Download any list as CSV or full snapshot backups as JSON — all files stay on your device.
 - **🌙 Dark Minimalist UI:** A premium, fully responsive interface built with Tailwind CSS v4.
 
 ## 🏗️ Architecture & Tech Stack

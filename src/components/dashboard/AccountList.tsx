@@ -8,7 +8,9 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { INSTAGRAM_BASE_URL } from '@/lib/utils/constants';
 import { cn } from '@/lib/utils/cn';
+import { ExportButton } from '@/components/shared/ExportButton';
 import type { InstagramAccount } from '@/types/instagram';
+import type { ExportContext } from '@/types/export';
 
 export type AccountSortMode = 'username-asc' | 'username-desc' | 'time-desc' | 'time-asc';
 
@@ -17,6 +19,8 @@ export interface AccountListProps {
   /** Rows before "Show all" (default 50) */
   maxVisible?: number;
   emptyMessage?: string;
+  /** When set, shows an inline Export CSV button */
+  exportContext?: ExportContext;
   className?: string;
 }
 
@@ -58,6 +62,7 @@ export function AccountList({
   accounts,
   maxVisible = 50,
   emptyMessage = 'No accounts in this list.',
+  exportContext,
   className,
 }: AccountListProps) {
   const [sort, setSort] = useState<AccountSortMode>('username-asc');
@@ -94,9 +99,14 @@ export function AccountList({
             ))}
           </select>
         </label>
-        <p className="text-xs text-text-muted font-mono">
-          {accounts.length} account{accounts.length !== 1 ? 's' : ''}
-        </p>
+        <div className="flex items-center gap-2">
+          {exportContext && (
+            <ExportButton accounts={accounts} exportContext={exportContext} />
+          )}
+          <p className="text-xs text-text-muted font-mono">
+            {accounts.length} account{accounts.length !== 1 ? 's' : ''}
+          </p>
+        </div>
       </div>
 
       <div className="rounded-xl border border-border-subtle overflow-hidden">

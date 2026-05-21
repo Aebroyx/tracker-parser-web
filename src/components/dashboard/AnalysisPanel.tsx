@@ -8,9 +8,21 @@ import { useState } from 'react';
 import { AccountList } from '@/components/dashboard/AccountList';
 import { formatNumber } from '@/lib/utils/formatters';
 import { cn } from '@/lib/utils/cn';
+import type { ExportListType } from '@/types/export';
 import type { SnapshotAnalysis } from '@/types/snapshot';
 
 export type AnalysisTab = 'nonFollowers' | 'fans' | 'mutuals';
+
+function tabToListType(tab: AnalysisTab): ExportListType {
+  switch (tab) {
+    case 'nonFollowers':
+      return 'non-followers';
+    case 'fans':
+      return 'fans';
+    case 'mutuals':
+      return 'mutuals';
+  }
+}
 
 export interface AnalysisPanelProps {
   analysis: SnapshotAnalysis;
@@ -102,6 +114,10 @@ export function AnalysisPanel({
         accounts={listForTab()}
         emptyMessage={emptyForTab()}
         maxVisible={50}
+        exportContext={{
+          listType: tabToListType(tab),
+          snapshotLabel,
+        }}
       />
     </section>
   );

@@ -7,8 +7,9 @@
 import { useState } from 'react';
 import type { Snapshot } from '@/types/snapshot';
 import { formatNumber } from '@/lib/utils/formatters';
-import { Pencil, Trash2, Check, X } from 'lucide-react';
+import { Pencil, Trash2, Check, X, Download } from 'lucide-react';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { ExportDialog } from '@/components/shared/ExportDialog';
 
 export interface SnapshotHistoryProps {
   snapshots: Snapshot[];
@@ -24,6 +25,7 @@ export function SnapshotHistory({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draftLabel, setDraftLabel] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Snapshot | null>(null);
+  const [exportSnapshotId, setExportSnapshotId] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const startEdit = (s: Snapshot) => {
@@ -124,6 +126,14 @@ export function SnapshotHistory({
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
+                      className="p-2 rounded-lg text-text-secondary hover:text-accent-primary hover:bg-bg-tertiary"
+                      aria-label="Export snapshot data"
+                      onClick={() => setExportSnapshotId(id)}
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
                       className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary"
                       aria-label="Rename snapshot"
                       onClick={() => startEdit(s)}
@@ -145,6 +155,13 @@ export function SnapshotHistory({
           );
         })}
       </ul>
+
+      <ExportDialog
+        open={exportSnapshotId != null}
+        snapshots={snapshots}
+        initialSnapshotId={exportSnapshotId ?? undefined}
+        onClose={() => setExportSnapshotId(null)}
+      />
 
       <ConfirmDialog
         open={deleteTarget != null}

@@ -1,7 +1,7 @@
 # System Specification — Instaghost Tracker (Web)
 
 > **Document Status:** Draft v0.3  
-> **Last Updated:** 2026-05-19  
+> **Last Updated:** 2026-05-20  
 > **Author:** Spec-Driven Development Process
 
 ---
@@ -204,7 +204,7 @@ The parser extracts `username` from the URL path (`/_u/` segment), not from link
 | 2 | Snapshot Storage & Timeline | `docs/features/02_snapshot_timeline.md` | ✅ Complete |
 | 3 | Snapshot Diff Engine | `docs/features/03_diff_engine.md` | ✅ Complete |
 | 4 | Dashboard & Timeline Visualization | `docs/features/04_dashboard_ui.md` | ✅ Complete |
-| 5 | Data Export & Clear Controls | `docs/features/05_data_management.md` | ⏳ Planned |
+| 5 | Data Export & Clear Controls | `docs/features/05_data_management.md` | ✅ Complete |
 
 ---
 
