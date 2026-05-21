@@ -4,6 +4,7 @@
 
 import Link from 'next/link';
 import { HeaderClearData } from '@/components/layout/HeaderClearData';
+import { HeaderExportData } from '@/components/layout/HeaderExportData';
 import { APP_NAME } from '@/lib/utils/constants';
 
 export function Header() {
@@ -22,6 +23,7 @@ export function Header() {
       </Link>
 
       <nav className="flex items-center gap-2">
+        <HeaderExportData />
         <HeaderClearData />
         <a
           href="https://github.com/Aebroyx/tracker-parser-web"

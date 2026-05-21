@@ -1,7 +1,7 @@
 # Architecture — Instaghost Tracker (Web)
 
 > **Document Status:** Draft v0.1  
-> **Last Updated:** 2026-05-12  
+> **Last Updated:** 2026-05-20  
 > **Author:** Spec-Driven Development Process  
 > **Parent Spec:** `docs/SYSTEM_SPEC.md`
 
@@ -60,6 +60,8 @@ tracker-parser-web/
 │   │   ├── shared/                    # Reusable app-wide components
 │   │   │   ├── EmptyState.tsx         # Generic "no data" placeholder
 │   │   │   ├── ConfirmDialog.tsx      # Reusable confirmation modal
+│   │   │   ├── ExportButton.tsx       # Inline CSV export for account lists
+│   │   │   ├── ExportDialog.tsx       # Global export picker (list + format)
 │   │   │   ├── SortableList.tsx       # Generic sortable list (used by diff tables, follower lists)
 │   │   │   ├── StatCard.tsx           # Single stat display (count + label + trend)
 │   │   │   ├── SearchInput.tsx        # Reusable search/filter input
@@ -79,6 +81,8 @@ tracker-parser-web/
 │   │   │   └── AccountList.tsx        # Paginated list of accounts (username + link)
 │   │   └── layout/                    # Layout components
 │   │       ├── Header.tsx             # App header with navigation
+│   │       ├── HeaderExportData.tsx   # Header "Export data" + ExportDialog
+│   │       ├── HeaderClearData.tsx    # Header "Clear data" control
 │   │       ├── Footer.tsx             # Minimal footer
 │   │       └── PrivacyBanner.tsx      # First-visit privacy notice
 │   │
@@ -109,7 +113,8 @@ tracker-parser-web/
 │   │   ├── use-file-upload.ts         # File input state + mode selector + replace logic
 │   │   ├── use-parser-worker.ts       # Worker lifecycle + message handling
 │   │   ├── use-snapshots.ts           # Reactive snapshot queries (Dexie liveQuery)
-│   │   └── use-diff.ts               # Diff computation hook (wraps diff.service)
+│   │   ├── use-diff.ts               # Diff computation hook (wraps diff.service)
+│   │   └── use-export.ts              # CSV/JSON export actions (wraps export.service)
 │   │
 │   ├── providers/                     # React Context providers
 │   │   ├── AppProvider.tsx            # Global state (parse status, current data)
@@ -119,6 +124,7 @@ tracker-parser-web/
 │       ├── instagram.ts               # InstagramAccount, ParsedExport, ParseMeta
 │       ├── parser.ts                  # WorkerInboundMessage, WorkerOutboundMessage, ParseError
 │       ├── snapshot.ts                # Snapshot, SnapshotAnalysis, SnapshotDiff
+│       ├── export.ts                  # ExportListType, ExportContext, list labels
 │       └── ui.ts                      # UploadMode, DropZoneState, UI-specific enums
 │
 ├── __tests__/                         # Test files

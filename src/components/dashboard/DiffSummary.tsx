@@ -96,6 +96,11 @@ export function DiffSummary({
             accounts={diff.gainedFollowers}
             emptyMessage="No new followers in this range."
             maxVisible={30}
+            exportContext={{
+              listType: 'gained-followers',
+              snapshotLabel: olderLabel,
+              comparisonLabel: newerLabel,
+            }}
           />
         </DiffFold>
         <DiffFold title={`Lost followers (${formatNumber(diff.lostFollowers.length)})`}>
@@ -103,6 +108,11 @@ export function DiffSummary({
             accounts={diff.lostFollowers}
             emptyMessage="No one unfollowed in this range."
             maxVisible={30}
+            exportContext={{
+              listType: 'lost-followers',
+              snapshotLabel: olderLabel,
+              comparisonLabel: newerLabel,
+            }}
           />
         </DiffFold>
         <DiffFold title={`New following (${formatNumber(diff.newFollowing.length)})`}>
@@ -110,6 +120,11 @@ export function DiffSummary({
             accounts={diff.newFollowing}
             emptyMessage="You didn’t follow anyone new in this range."
             maxVisible={30}
+            exportContext={{
+              listType: 'new-following',
+              snapshotLabel: olderLabel,
+              comparisonLabel: newerLabel,
+            }}
           />
         </DiffFold>
         <DiffFold title={`Removed following (${formatNumber(diff.removedFollowing.length)})`}>
@@ -117,6 +132,11 @@ export function DiffSummary({
             accounts={diff.removedFollowing}
             emptyMessage="You didn’t unfollow anyone in this range."
             maxVisible={30}
+            exportContext={{
+              listType: 'removed-following',
+              snapshotLabel: olderLabel,
+              comparisonLabel: newerLabel,
+            }}
           />
         </DiffFold>
       </div>

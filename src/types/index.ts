@@ -26,6 +26,19 @@ export type {
 } from './snapshot';
 
 export type {
+  ExportContext,
+  ExportFilenameOptions,
+  ExportFormat,
+  ExportListType,
+} from './export';
+
+export {
+  EXPORT_LIST_LABELS,
+  CROSS_SNAPSHOT_LIST_TYPES,
+  isCrossSnapshotListType,
+} from './export';
+
+export type {
   UploadMode,
   DropZoneState,
   FileSlot,
