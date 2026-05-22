@@ -93,7 +93,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem]",
+          "relative z-50 max-h-(--radix-select-content-available-height) min-w-32",
           "overflow-hidden rounded-lg border border-border-subtle bg-bg-secondary text-text-primary",
           "origin-(--radix-select-content-transform-origin) duration-150",
           "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",
