@@ -1,7 +1,7 @@
 # Feature Spec: File Processing (Phase 1)
 
-> **Document Status:** Draft v0.1  
-> **Last Updated:** 2026-05-12  
+> **Document Status:** Draft v0.2  
+> **Last Updated:** 2026-05-22  
 > **Feature Phase:** 1  
 > **Parent Docs:** `docs/SYSTEM_SPEC.md`, `docs/ARCHITECTURE.md`
 
@@ -19,8 +19,8 @@ Enable users to upload Instagram data exports in `.zip`, `.json`, or `.html` for
 |----|---------|-------------|-----------|
 | US-1.1 | User | Drag and drop my Instagram `.zip` export onto the page | I can quickly start analyzing my data |
 | US-1.2 | User | Click a button to browse and select a file | I have an alternative to drag-and-drop |
-| US-1.3 | User | Upload individual `.json` files (followers + following) | I can use the tool even if I extracted the zip myself |
-| US-1.4 | User | Upload individual `.html` files (followers + following) | I can use the tool even if I exported in HTML format |
+| US-1.3 | User | Upload individual `.json` files in two clearly labeled slots (followers + following) | I immediately see that two files are required without trial-and-error |
+| US-1.4 | User | Upload individual `.html` files in two clearly labeled slots (followers + following) | I can use the tool even if I exported in HTML format |
 | US-1.5 | User | See a progress indicator during parsing | I know the app is working and hasn't frozen |
 | US-1.6 | User | See a clear error message if my file is invalid | I understand what went wrong and how to fix it |
 | US-1.7 | User | See a privacy notice before uploading | I trust that my data stays on my device |
@@ -39,8 +39,11 @@ Enable users to upload Instagram data exports in `.zip`, `.json`, or `.html` for
 | AC-3 | Files of other types are rejected immediately | Drop a `.png` → error toast: "Unsupported file type. Please upload a .zip, .json, or .html file." |
 | AC-4 | Files exceeding 500MB are rejected before parsing | Upload 600MB file → error toast: "File exceeds the 500MB limit." |
 | AC-5 | The drop zone provides visual feedback on drag-over | Border color changes, icon animates on `dragenter` |
-| AC-6 | Multiple files can be uploaded at once within the selected mode | User selects `followers_1.json` and `following.json` → both are processed into one snapshot |
-| AC-7 | Clicking the upload zone opens the system file picker | `<input type="file">` is triggered programmatically |
+| AC-6 | Multiple follower files can be uploaded in the followers slot (pagination) | User selects `followers_1.json` + `followers_2.json` in the followers slot → merged into one followers list |
+| AC-6b | JSON/HTML modes show two labeled upload slots side by side on `sm+` viewports | Followers and Following zones visible at once; stacked on mobile |
+| AC-6c | Save Snapshot appears below both slots only when followers and following data are present | Same completion rule as before; not inside a single slot |
+| AC-7 | Clicking an upload zone opens the system file picker | `<input type="file">` is triggered programmatically per slot (ZIP: single zone) |
+| AC-7b | Wrong-slot upload shows a slot-level error | `following.json` dropped in Followers slot → "use the Following slot" |
 
 ### 3.2 ZIP Processing
 
@@ -217,8 +220,8 @@ The user selects one of three modes before uploading:
 | Mode | What the user uploads | What happens |
 |------|----------------------|--------------|
 | **ZIP** | A single `.zip` file | The ZIP is extracted, follower/following files are auto-discovered, parsed, and combined into one snapshot |
-| **JSON Files** | One or more `.json` files | Each file is validated as Instagram JSON. The user must provide both followers and following files. Uploading a new file of the same category (followers/following) replaces the previous one |
-| **HTML Files** | One or more `.html` files | Same as JSON mode but with HTML parsing via regex (DOMParser not supported in Web Workers) |
+| **JSON Files** | Two side-by-side slots: **Followers** and **Following** | Each slot accepts `.json` only. Followers slot allows multiple files (paginated `followers_1`, `followers_2`, …). Following slot accepts one `following.json`. Both lists required before save |
+| **HTML Files** | Same dual-slot layout as JSON | Each slot accepts `.html` / `.htm`. Same merge/replace rules as JSON mode |
 
 ### 6.2 Replace Behavior (Non-ZIP Modes)
 
@@ -226,10 +229,11 @@ For JSON/HTML modes where files are uploaded individually:
 
 | Action | Result |
 |--------|--------|
-| Upload `followers_1.json` | Followers data stored in-memory. Following is empty. UI shows: "Followers loaded (150 accounts). Upload your following file to complete the snapshot." |
-| Upload `following.json` | Following data stored. Both lists present. UI shows: "Ready! 150 followers, 200 following." Save as snapshot button appears. |
-| Upload a different `followers_1.json` | **Replaces** the previous followers data entirely. Following data is kept. |
-| Upload a `.zip` while in JSON mode | **Replaces everything.** The ZIP is treated as a complete upload. |
+| Upload `followers_1.json` in **Followers** slot | Followers slot shows green loaded state with account count. Following slot stays idle |
+| Upload `following.json` in **Following** slot | Following slot loads. **UploadReadyBar** below both slots: "Ready! …" + Save Snapshot |
+| Upload another `followers_2.json` in Followers slot | **Merges** with existing followers (deduped). Following data is kept |
+| Upload wrong file in a slot | Slot-level error (e.g. following file in Followers slot). Other slot unaffected |
+| Switch upload mode | Resets all in-memory slot state |
 
 ### 6.3 Snapshot Save Flow
 
@@ -318,41 +322,52 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 
 ### 10.2 Upload Drop Zone
 
+**ZIP mode** — single full-width `DropZone` (`min-h` 220px):
+
 ```
 ┌─────────────────────────────────────────────────────────┐
-│   Upload Mode: [ZIP] [JSON Files] [HTML Files]      │
-│                                                         │
+│   Upload Mode: [ZIP] [JSON Files] [HTML Files]          │
 │                    ┌──────────┐                         │
 │                    │  Upload  │                         │
-│                    │   Icon   │                         │
 │                    └──────────┘                         │
-│                                                         │
 │         Drag & drop your Instagram export here          │
-│              or click to browse files                   │
-│                                                         │
-│         Supports: {dynamic per selected mode}           │
-│         Max size: 500MB                                 │
-│                                                         │
+│         Supports: .zip files · Max size: 500MB          │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Mode-specific support text:**
-| Mode | Text |
-|------|------|
-| ZIP | "Supports: .zip files" |
-| JSON Files | "Supports: .json files" |
-| HTML Files | "Supports: .html files" |
+**JSON / HTML modes** — dual `FileSlotDropZone` grid (`min-h` 180px per slot, `max-w-2xl` panel):
 
-**States:**
+```
+┌─────────────────────────────────────────────────────────┐
+│   Upload both files from followers_and_following/       │
+├─────────────────────────┬───────────────────────────────┤
+│  Followers              │  Following                    │
+│  e.g. followers_1.json │  e.g. following.json          │
+│  [drop zone]            │  [drop zone]                  │
+└─────────────────────────┴───────────────────────────────┘
+│  UploadReadyBar: Ready! … [Save Snapshot]  (when both OK) │
+└─────────────────────────────────────────────────────────┘
+```
+
+Responsive: `grid-cols-1` on mobile, `sm:grid-cols-2` side by side.
+
+**ZIP drop zone states (`DropZoneState`):**
 | State | Visual |
 |-------|--------|
 | `idle` | Dashed border, muted text, upload icon |
-| `drag-over` | Highlighted border (primary color), pulsing icon, "Drop to upload" text |
-| `uploading` | Solid border, spinner replacing icon, "Reading file…" text |
-| `parsing` | Progress bar appears below zone, stage label shown |
-| `incomplete` | Amber border, info icon, "Followers loaded. Upload your following file to complete." with file status indicators |
-| `ready` | Green border, checkmark, "Ready! 150 followers, 200 following." with "Save Snapshot" button |
-| `error` | Red border, error icon, error message with "Try Again" button |
+| `drag-over` | Highlighted border (primary color), "Drop to upload" |
+| `parsing` | Progress bar + stage label + Cancel |
+| `ready` | Green border, checkmark, counts + Save Snapshot |
+| `error` | Red border, error message, click to retry |
+
+**Per-slot states (`SlotVisualState`) for JSON/HTML:**
+| State | Visual |
+|-------|--------|
+| `idle` | Dashed border, "Drop file here" |
+| `drag-over` | Primary border highlight |
+| `parsing` | Spinner + progress (active slot only) |
+| `loaded` | Green border, account count + filename hint |
+| `error` | Red border, slot-level message (mis-slot, validation, parse) |
 
 ### 10.3 Progress Indicator
 
@@ -370,7 +385,7 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
   3. Select "Some of your information"
   4. Check "Followers and Following"
   5. Choose **JSON or HTML** format (both are supported)
-  6. Download and upload the `.zip` file here
+  6. **ZIP mode:** Download and upload the `.zip` file here. **JSON/HTML modes:** Unzip, open `followers_and_following`, and upload both files in the two upload areas.
 
 ---
 
@@ -458,8 +473,10 @@ __tests__/
 - [x] Implement `src/services/parser/worker.ts` (Web Worker entry point, routing JSON vs HTML)
 - [x] Create `src/hooks/use-parser-worker.ts` (Worker lifecycle + message handling)
 - [x] Create `src/hooks/use-file-upload.ts` (drag-and-drop + file input state + mode selector + replace logic)
-- [x] Build `src/components/file-upload/DropZone.tsx`
-- [ ] Build `src/components/file-upload/ProgressBar.tsx` (standalone optional component; **progress is implemented inline in `DropZone` per AC-21**)
+- [x] Build `src/components/file-upload/DropZone.tsx` (ZIP-only)
+- [x] Build `src/components/file-upload/FileSlotDropZone.tsx` (JSON/HTML per-slot)
+- [x] Build `src/components/file-upload/UploadReadyBar.tsx` (dual-mode save CTA)
+- [ ] Build `src/components/file-upload/ProgressBar.tsx` (standalone optional; progress inline in drop zones per AC-21)
 - [x] Build `src/components/layout/PrivacyBanner.tsx`
 - [x] Build `src/components/file-upload/HelpSection.tsx`
 - [x] Integrate on `src/app/page.tsx` (landing page)

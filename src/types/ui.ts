@@ -16,11 +16,22 @@ export type DropZoneState =
   | 'ready'
   | 'error';
 
+/** Which dual-upload slot a file belongs to (JSON/HTML modes) */
+export type FileSlotCategory = 'followers' | 'following';
+
+/** Per-slot visual state for FileSlotDropZone */
+export type SlotVisualState =
+  | 'idle'
+  | 'drag-over'
+  | 'parsing'
+  | 'loaded'
+  | 'error';
+
 /** File status for individual file tracking in non-ZIP modes */
 export interface FileSlot {
   /** Which category this file fills */
-  category: 'followers' | 'following';
-  /** Original filename */
+  category: FileSlotCategory;
+  /** Original filename (or comma-separated for multiple) */
   fileName: string;
   /** Number of accounts parsed from this file */
   accountCount: number;

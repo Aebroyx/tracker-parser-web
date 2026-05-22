@@ -5,25 +5,43 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
+import type { UploadMode } from '@/types/ui';
 import { cn } from '@/lib/utils/cn';
 
-const steps = [
+const baseSteps = [
   'Open Instagram → Settings → Accounts Center',
   'Your Information and Permissions → Download Your Information',
   'Select "Some of your information"',
   'Check "Followers and Following"',
   'Choose JSON or HTML format (both are supported)',
-  'Download and upload the .zip file here',
 ];
 
-export function HelpSection() {
+const finalStepByMode: Record<UploadMode, string> = {
+  zip: 'Download and upload the .zip file here',
+  json:
+    'Unzip the download, open followers_and_following, and upload both files using the two upload areas (followers + following)',
+  html:
+    'Unzip the download, open followers_and_following, and upload both files using the two upload areas (followers + following)',
+};
+
+interface HelpSectionProps {
+  mode?: UploadMode;
+}
+
+export function HelpSection({ mode = 'zip' }: HelpSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const steps = useMemo(
+    () => [...baseSteps, finalStepByMode[mode]],
+    [mode]
+  );
 
   return (
     <div className="rounded-xl border border-border-subtle bg-bg-secondary/50 overflow-hidden">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full px-4 py-3 text-left text-sm text-text-secondary hover:text-text-primary transition-colors"
       >
@@ -39,7 +57,7 @@ export function HelpSection() {
       <div
         className={cn(
           'overflow-hidden transition-all duration-200 ease-out',
-          isOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
+          isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         )}
       >
         <ol className="px-4 pb-4 space-y-2">

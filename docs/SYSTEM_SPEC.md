@@ -1,7 +1,7 @@
 # System Specification — Instaghost Tracker (Web)
 
 > **Document Status:** Draft v0.3  
-> **Last Updated:** 2026-05-20  
+> **Last Updated:** 2026-05-22  
 > **Author:** Spec-Driven Development Process
 
 ---
@@ -10,7 +10,7 @@
 
 Build **Instaghost Tracker** — a **privacy-first, client-side only** web application that enables Instagram users to:
 
-1. Upload their official Instagram data export (`.zip`, raw `.json`, or `.html` files).
+1. Upload their official Instagram data export (`.zip`, or individual `.json` / `.html` follower + following files in two labeled upload slots).
 2. Parse and visualize their **followers** and **following** lists.
 3. Identify **non-followers** (accounts you follow that don't follow you back).
 4. Identify **fans** (accounts that follow you but you don't follow back).

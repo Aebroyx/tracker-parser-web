@@ -67,11 +67,12 @@ tracker-parser-web/
 │   │   │   ├── SearchInput.tsx        # Reusable search/filter input
 │   │   │   └── Toast.tsx              # Notification toast
 │   │   ├── file-upload/               # Upload feature components
-│   │   │   ├── DropZone.tsx           # Drag-and-drop zone
+│   │   │   ├── UploadPanel.tsx        # Orchestrates mode + ZIP or dual-slot layout
+│   │   │   ├── DropZone.tsx           # ZIP-only full-width drop zone
+│   │   │   ├── FileSlotDropZone.tsx   # Per-slot drop zone (JSON/HTML followers | following)
+│   │   │   ├── UploadReadyBar.tsx     # Ready state + Save below dual slots
 │   │   │   ├── ModeSelector.tsx       # ZIP / JSON / HTML mode tabs
-│   │   │   ├── FileStatus.tsx         # Shows which files are loaded/missing
-│   │   │   ├── ProgressBar.tsx        # Parse progress indicator
-│   │   │   └── HelpSection.tsx        # "How to get your export" guide
+│   │   │   └── HelpSection.tsx        # Mode-aware "How to get your export" guide
 │   │   ├── dashboard/                 # Dashboard feature components
 │   │   │   ├── StatsBar.tsx           # Row of StatCards (followers, following, etc.)
 │   │   │   ├── DiffCard.tsx           # Gained/lost summary with expandable lists
@@ -472,7 +473,7 @@ interface AppState {
 | Route | Component | Purpose |
 |-------|-----------|---------|
 | `/` | `app/page.tsx` | **Smart landing:** If no snapshots exist → show upload zone (first-time experience). If snapshots exist → show timeline dashboard with "Upload New Backup" button. |
-| `/upload` | `app/upload/page.tsx` | Dedicated upload page for returning users. Shows mode selector (ZIP/JSON/HTML) and drop zone. After successful parse → redirect to `/`. |
+| `/upload` | `app/upload/page.tsx` | Dedicated upload page for returning users. Shows mode selector (ZIP/JSON/HTML); ZIP uses one drop zone, JSON/HTML use side-by-side Followers + Following slots. After successful parse → redirect to `/`. |
 
 > **Note:** There is no separate `/results` or `/history` page. The dashboard on `/` shows everything: latest snapshot analysis, diff against previous, and timeline history. This keeps the UX simple — one page to see all your data.
 
