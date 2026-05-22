@@ -18,7 +18,7 @@ You download your official data export directly from Instagram and drop it into 
 - **⚡ Blazing Fast Parsing:** Heavy data crunching is offloaded to a Web Worker, ensuring the UI never freezes, even when processing 500MB+ ZIP files.
 - **📂 Multi-Format Support:** 
   - Drag-and-drop your raw `.zip` export directly.
-  - Or upload individual `.json` or `.html` follower/following files.
+  - Or upload individual `.json` or `.html` files using **two side-by-side slots** (followers + following) so both required files are obvious upfront.
 - **📈 Timeline Analytics:** Compare multiple data exports over time to see exactly *who* unfollowed you, *who* you aren't following back, and your net follower growth.
 - **📥 Data Export:** Download any list as CSV or full snapshot backups as JSON — all files stay on your device.
 - **🌙 Dark Minimalist UI:** A premium, fully responsive interface built with Tailwind CSS v4.
@@ -74,7 +74,7 @@ For a deep dive into the architecture, state management, and file processing alg
 3. Scroll down to **Download your information**.
 4. Request a download. **Make sure to select JSON or HTML format.**
 5. Once Instagram emails you the file, download the `.zip` archive.
-6. Drag and drop that `.zip` file directly into Instaghost Tracker!
+6. Drag and drop that `.zip` file directly into Instaghost Tracker — **or** switch to JSON/HTML mode, unzip the download, and upload the `followers_*` and `following` files into the two labeled upload areas.
 
 ## 📄 License
 

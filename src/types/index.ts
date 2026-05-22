@@ -42,4 +42,6 @@ export type {
   UploadMode,
   DropZoneState,
   FileSlot,
+  FileSlotCategory,
+  SlotVisualState,
 } from './ui';

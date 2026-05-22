@@ -8,6 +8,8 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { ModeSelector } from '@/components/file-upload/ModeSelector';
 import { DropZone } from '@/components/file-upload/DropZone';
+import { FileSlotDropZone } from '@/components/file-upload/FileSlotDropZone';
+import { UploadReadyBar } from '@/components/file-upload/UploadReadyBar';
 import { HelpSection } from '@/components/file-upload/HelpSection';
 import { PrivacyBanner } from '@/components/layout/PrivacyBanner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -48,8 +50,15 @@ export function UploadPanel({
     upload.pendingFollowing?.length ??
     0;
 
-  const errorMessage =
-    upload.validationError ?? upload.parserError?.message ?? saveError ?? undefined;
+  const isZip = upload.mode === 'zip';
+  const isDualMode = upload.mode === 'json' || upload.mode === 'html';
+  const dualFileMode = upload.mode === 'html' ? 'html' : 'json';
+
+  const zipErrorMessage =
+    upload.zipErrorMessage ?? saveError ?? undefined;
+
+  const showSlotProgress = (slot: 'followers' | 'following') =>
+    upload.parsingSlot === slot;
 
   const performSave = useCallback(
     async (data: ParsedExport) => {
@@ -91,7 +100,7 @@ export function UploadPanel({
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-      <div className="w-full max-w-xl flex flex-col gap-6">
+      <div className="w-full max-w-2xl flex flex-col gap-6">
         {showBackLink && (
           <Link
             href="/"
@@ -123,20 +132,85 @@ export function UploadPanel({
           />
         </div>
 
-        <DropZone
-          mode={upload.mode}
-          state={upload.dropZoneState}
-          onFiles={upload.handleFiles}
-          followerCount={followerCount}
-          followingCount={followingCount}
-          errorMessage={errorMessage}
-          progress={upload.parserProgress}
-          stageLabel={upload.parserStage ?? undefined}
-          onCancel={upload.cancel}
-          onSave={onSaveClick}
-        />
+        {isZip && (
+          <DropZone
+            state={upload.dropZoneState}
+            onFiles={upload.handleFiles}
+            followerCount={followerCount}
+            followingCount={followingCount}
+            errorMessage={zipErrorMessage}
+            progress={upload.parserProgress}
+            stageLabel={upload.parserStage ?? undefined}
+            onCancel={upload.cancel}
+            onSave={onSaveClick}
+          />
+        )}
 
-        <HelpSection />
+        {isDualMode && (
+          <div className="flex flex-col gap-4">
+            <p className="text-xs text-text-secondary text-center">
+              Upload both files from your export&apos;s{' '}
+              <span className="font-mono text-text-muted">
+                followers_and_following
+              </span>{' '}
+              folder — one for followers, one for following.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FileSlotDropZone
+                category="followers"
+                mode={dualFileMode}
+                state={upload.followersSlotState}
+                onFiles={(files) => upload.handleSlotFiles(files, 'followers')}
+                accountCount={followerCount}
+                fileName={upload.followersFileName}
+                errorMessage={upload.followersError ?? undefined}
+                progress={
+                  showSlotProgress('followers') ? upload.parserProgress : 0
+                }
+                stageLabel={
+                  showSlotProgress('followers')
+                    ? (upload.parserStage ?? undefined)
+                    : undefined
+                }
+                onCancel={upload.cancel}
+                multiple
+              />
+              <FileSlotDropZone
+                category="following"
+                mode={dualFileMode}
+                state={upload.followingSlotState}
+                onFiles={(files) => upload.handleSlotFiles(files, 'following')}
+                accountCount={followingCount}
+                fileName={upload.followingFileName}
+                errorMessage={upload.followingError ?? undefined}
+                progress={
+                  showSlotProgress('following') ? upload.parserProgress : 0
+                }
+                stageLabel={
+                  showSlotProgress('following')
+                    ? (upload.parserStage ?? undefined)
+                    : undefined
+                }
+                onCancel={upload.cancel}
+              />
+            </div>
+
+            {upload.exportReady && (
+              <UploadReadyBar
+                followerCount={followerCount}
+                followingCount={followingCount}
+                onSave={onSaveClick}
+              />
+            )}
+
+            {saveError && (
+              <p className="text-xs text-accent-red text-center">{saveError}</p>
+            )}
+          </div>
+        )}
+
+        <HelpSection mode={upload.mode} />
 
         {upload.exportReady &&
           upload.exportReady.meta.warnings.length > 0 && (

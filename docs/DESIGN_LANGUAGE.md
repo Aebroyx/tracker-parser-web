@@ -222,6 +222,10 @@ Base unit: `4px`. All spacing is a multiple of this.
 - Transition: border-color `150ms ease`
 - Focus: border-color transitions to `--accent-primary`
 
+**ZIP upload:** Single full-width zone, `min-h` ~220px.
+
+**JSON/HTML dual upload:** Two `FileSlotDropZone` components in a responsive grid (`grid-cols-1` mobile, `sm:grid-cols-2` desktop), `gap-4`, panel `max-w-2xl`. Each slot `min-h` ~180px with a title (Followers / Following) and filename hint above the dashed area. Per-slot states: idle (default), drag-over (primary border), parsing (spinner on active slot only), loaded (green border + count), error (red border). Save action lives in `UploadReadyBar` below the grid, not inside a slot.
+
 ### 5.4 Data Tables / Lists
 
 - No zebra striping — too visually noisy
