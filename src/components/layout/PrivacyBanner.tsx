@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, X } from 'lucide-react';
 import { PRIVACY_NOTICE_KEY } from '@/lib/utils/constants';
+import { Button } from '@/components/ui/button';
 
 export function PrivacyBanner() {
   const [isDismissed, setIsDismissed] = useState(true); // Default hidden to prevent flash
@@ -32,13 +33,15 @@ export function PrivacyBanner() {
         <span className="text-text-primary font-medium">Your data never leaves your device.</span>{' '}
         All processing happens right here in your browser. Nothing is uploaded to any server.
       </p>
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={handleDismiss}
-        className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors shrink-0"
         aria-label="Dismiss privacy notice"
+        className="text-text-muted sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 shrink-0"
       >
         <X className="w-4 h-4" />
-      </button>
+      </Button>
     </div>
   );
 }

@@ -6,6 +6,13 @@
 
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils/cn';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { Snapshot } from '@/types/snapshot';
 
 export interface SnapshotPickerValue {
@@ -86,59 +93,67 @@ export function SnapshotPicker({
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
-        <label className="flex flex-col gap-1.5 flex-1 min-w-0">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
           <span className="text-xs font-medium text-text-secondary">Older snapshot</span>
-          <select
-            className="text-sm rounded-lg border border-border-default bg-bg-primary text-text-primary px-3 py-2 w-full"
-            value={effectiveOlder ?? ''}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (!Number.isFinite(v)) return;
+          <Select
+            value={effectiveOlder != null ? String(effectiveOlder) : undefined}
+            onValueChange={(v) => {
+              const id = Number(v);
+              if (!Number.isFinite(id)) return;
               onChange({
-                olderId: v,
+                olderId: id,
                 newerId: effectiveNewer ?? defaults.newerId,
               });
             }}
           >
-            {snapshots.map((s, i) => {
-              if (s.id == null) return null;
-              return (
-                <option key={s.id} value={s.id}>
-                  {snapshotOptionLabel(s, i)}
-                </option>
-              );
-            })}
-          </select>
-        </label>
+            <SelectTrigger aria-label="Older snapshot">
+              <SelectValue placeholder="Select older snapshot" />
+            </SelectTrigger>
+            <SelectContent>
+              {snapshots.map((s, i) => {
+                if (s.id == null) return null;
+                return (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {snapshotOptionLabel(s, i)}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
 
         <span className="text-text-muted text-sm pb-2 hidden sm:inline" aria-hidden>
           →
         </span>
 
-        <label className="flex flex-col gap-1.5 flex-1 min-w-0">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
           <span className="text-xs font-medium text-text-secondary">Newer snapshot</span>
-          <select
-            className="text-sm rounded-lg border border-border-default bg-bg-primary text-text-primary px-3 py-2 w-full"
-            value={effectiveNewer ?? ''}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (!Number.isFinite(v)) return;
+          <Select
+            value={effectiveNewer != null ? String(effectiveNewer) : undefined}
+            onValueChange={(v) => {
+              const id = Number(v);
+              if (!Number.isFinite(id)) return;
               onChange({
-                newerId: v,
+                newerId: id,
                 olderId: effectiveOlder ?? defaults.olderId,
               });
             }}
           >
-            {snapshots.map((s, i) => {
-              if (s.id == null) return null;
-              return (
-                <option key={s.id} value={s.id}>
-                  {snapshotOptionLabel(s, i)}
-                </option>
-              );
-            })}
-          </select>
-        </label>
+            <SelectTrigger aria-label="Newer snapshot">
+              <SelectValue placeholder="Select newer snapshot" />
+            </SelectTrigger>
+            <SelectContent>
+              {snapshots.map((s, i) => {
+                if (s.id == null) return null;
+                return (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {snapshotOptionLabel(s, i)}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {(invalidOrder || sameId) && (

@@ -1,10 +1,13 @@
 /**
  * Shared ready state + Save Snapshot below dual file slots.
+ * Uses the Shadcn Button primitive (variant="default" for primary CTA).
+ * See: docs/DESIGN_LANGUAGE.md §5.2.
  */
 
 'use client';
 
 import { CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface UploadReadyBarProps {
   followerCount: number;
@@ -26,13 +29,9 @@ export function UploadReadyBar({
           {followingCount.toLocaleString()} following
         </p>
       </div>
-      <button
-        type="button"
-        onClick={onSave}
-        className="btn-primary px-4 py-2 rounded-lg text-sm font-medium"
-      >
+      <Button type="button" variant="default" onClick={onSave}>
         Save Snapshot
-      </button>
+      </Button>
     </div>
   );
 }

@@ -1,5 +1,7 @@
 /**
- * Header export control — opens global ExportDialog when snapshots exist.
+ * Desktop header "Export data" control — opens the global ExportDialog.
+ * Hidden when no snapshots exist. Mobile equivalent lives inside the
+ * Shadcn DropdownMenu in `Header.tsx`.
  */
 
 'use client';
@@ -9,6 +11,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Download } from 'lucide-react';
 import { db } from '@/lib/db/dexie-client';
 import { ExportDialog } from '@/components/shared/ExportDialog';
+import { Button } from '@/components/ui/button';
 import type { Snapshot } from '@/types/snapshot';
 
 export function HeaderExportData() {
@@ -24,15 +27,17 @@ export function HeaderExportData() {
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-text-secondary hover:text-accent-primary transition-colors rounded-lg hover:bg-bg-tertiary"
         title="Export lists or snapshot backup"
+        className="text-text-secondary hover:text-accent-primary"
       >
         <Download className="w-3.5 h-3.5" />
         Export data
-      </button>
+      </Button>
 
       <ExportDialog
         open={open}

@@ -1,7 +1,7 @@
 # Architecture — Instaghost Tracker (Web)
 
-> **Document Status:** Draft v0.1  
-> **Last Updated:** 2026-05-20  
+> **Document Status:** Draft v0.2  
+> **Last Updated:** 2026-05-22  
 > **Author:** Spec-Driven Development Process  
 > **Parent Spec:** `docs/SYSTEM_SPEC.md`
 
@@ -56,35 +56,40 @@ tracker-parser-web/
 │   │   └── globals.css                # CSS custom properties, Tailwind directives
 │   │
 │   ├── components/                    # ALL React components (no logic, just UI)
-│   │   ├── ui/                        # Shadcn UI primitives (Button, Card, etc.)
-│   │   ├── shared/                    # Reusable app-wide components
-│   │   │   ├── EmptyState.tsx         # Generic "no data" placeholder
-│   │   │   ├── ConfirmDialog.tsx      # Reusable confirmation modal
-│   │   │   ├── ExportButton.tsx       # Inline CSV export for account lists
-│   │   │   ├── ExportDialog.tsx       # Global export picker (list + format)
-│   │   │   ├── SortableList.tsx       # Generic sortable list (used by diff tables, follower lists)
-│   │   │   ├── StatCard.tsx           # Single stat display (count + label + trend)
-│   │   │   ├── SearchInput.tsx        # Reusable search/filter input
-│   │   │   └── Toast.tsx              # Notification toast
+│   │   ├── ui/                        # Shadcn UI primitives (copied via shadcn CLI, themed to ghost tokens — see docs/DESIGN_LANGUAGE.md §5.2–§5.3.1)
+│   │   │   ├── button.tsx             # Button (variants: default/destructive/outline/ghost/link; sizes: default/sm/icon)
+│   │   │   ├── dialog.tsx             # Dialog + overlay (Radix react-dialog)
+│   │   │   ├── dropdown-menu.tsx      # DropdownMenu (Radix react-dropdown-menu)
+│   │   │   ├── label.tsx              # Label (Radix react-label)
+│   │   │   ├── progress.tsx           # Progress bar (Radix react-progress)
+│   │   │   └── select.tsx             # Select (Radix react-select)
+│   │   ├── shared/                    # Reusable app-wide components (feature-agnostic)
+│   │   │   ├── ConfirmDialog.tsx      # Wrapper around Shadcn Dialog: title + description + confirm/cancel
+│   │   │   ├── ExportButton.tsx       # Inline CSV export button for account lists (uses Shadcn Button)
+│   │   │   ├── ExportDialog.tsx       # Global export picker (snapshot + list + format) built on Shadcn Dialog + Select + Button
+│   │   │   └── StatCard.tsx           # Single stat display (count + label + optional delta)
 │   │   ├── file-upload/               # Upload feature components
 │   │   │   ├── UploadPanel.tsx        # Orchestrates mode + ZIP or dual-slot layout
-│   │   │   ├── DropZone.tsx           # ZIP-only full-width drop zone
-│   │   │   ├── FileSlotDropZone.tsx   # Per-slot drop zone (JSON/HTML followers | following)
-│   │   │   ├── UploadReadyBar.tsx     # Ready state + Save below dual slots
+│   │   │   ├── DropZone.tsx           # ZIP-only full-width drop zone (uses Shadcn Progress + Button)
+│   │   │   ├── FileSlotDropZone.tsx   # Per-slot drop zone (JSON/HTML followers | following) (uses Shadcn Progress)
+│   │   │   ├── UploadReadyBar.tsx     # Ready state + Save below dual slots (uses Shadcn Button)
 │   │   │   ├── ModeSelector.tsx       # ZIP / JSON / HTML mode tabs
 │   │   │   └── HelpSection.tsx        # Mode-aware "How to get your export" guide
 │   │   ├── dashboard/                 # Dashboard feature components
 │   │   │   ├── StatsBar.tsx           # Row of StatCards (followers, following, etc.)
 │   │   │   ├── DiffCard.tsx           # Gained/lost summary with expandable lists
-│   │   │   ├── TimelineChart.tsx      # Line chart of follower count over time
-│   │   │   ├── SnapshotHistory.tsx    # Chronological list of all snapshots
-│   │   │   ├── SnapshotPicker.tsx     # Select two snapshots for comparison
-│   │   │   └── AccountList.tsx        # Paginated list of accounts (username + link)
+│   │   │   ├── DiffSummary.tsx        # Diff stats + collapsible per-list account tables
+│   │   │   ├── TimelineChart.tsx      # Line chart of follower count over time (Recharts)
+│   │   │   ├── SnapshotHistory.tsx    # Chronological list of snapshots (uses Shadcn Button + Dialog)
+│   │   │   ├── SnapshotPicker.tsx     # Select two snapshots for comparison (uses Shadcn Select)
+│   │   │   ├── StorageUsage.tsx       # Approximate browser storage usage line
+│   │   │   ├── AnalysisPanel.tsx      # Within-snapshot tabs (non-followers, fans, mutuals)
+│   │   │   └── AccountList.tsx        # Paginated list of accounts (uses Shadcn Select for sort)
 │   │   └── layout/                    # Layout components
-│   │       ├── Header.tsx             # App header with navigation
-│   │       ├── HeaderExportData.tsx   # Header "Export data" + ExportDialog
-│   │       ├── HeaderClearData.tsx    # Header "Clear data" control
-│   │       ├── Footer.tsx             # Minimal footer
+│   │       ├── Header.tsx             # App header (uses Shadcn DropdownMenu for mobile overflow)
+│   │       ├── HeaderExportData.tsx   # Header "Export data" + ExportDialog (uses Shadcn Button)
+│   │       ├── HeaderClearData.tsx    # Header "Clear data" control (uses Shadcn Button + ConfirmDialog)
+│   │       ├── Footer.tsx             # Minimal footer with safe-area padding
 │   │       └── PrivacyBanner.tsx      # First-visit privacy notice
 │   │
 │   ├── services/                      # Business logic — FRAMEWORK AGNOSTIC
@@ -517,3 +522,12 @@ interface AppState {
 | `ZIP_EXTRACTION_FAILED` | "We couldn't open this ZIP file. It may be corrupted — try downloading it again from Instagram." | Retry upload |
 | `FILE_TOO_LARGE` | "This file exceeds the 500MB limit. Please try exporting a smaller date range." | Retry with smaller file |
 | `EMPTY_DATA` | "The export was parsed successfully, but no follower or following data was found." | Check export settings |
+
+---
+
+## Change Log
+
+| Date | Version | Change |
+|------|---------|--------|
+| 2026-05-22 | v0.2 | Phase 7 Shadcn UI foundation: §2 directory structure now lists actual `src/components/ui/` Shadcn primitives (button, dialog, dropdown-menu, label, progress, select); removed references to non-existent shared components (EmptyState, SortableList, SearchInput, Toast); added DiffSummary, StorageUsage, AnalysisPanel to dashboard listing |
+| 2026-05-20 | v0.1 | Initial architecture spec |

@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { ParsedExport, ParseMeta, InstagramAccount } from '@/types/instagram';
 import type {
@@ -80,6 +80,15 @@ function buildCompletedExport(
 
 export function useFileUpload() {
   const parser = useParserWorker();
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: none) and (pointer: coarse)');
+    const update = () => setIsTouchDevice(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   const [state, setState] = useState<FileUploadState>({
     mode: 'zip',
@@ -443,6 +452,7 @@ export function useFileUpload() {
     state.validationError ?? parser.error?.message ?? undefined;
 
   return {
+    isTouchDevice,
     mode: state.mode,
     dropZoneState: derivedDropZoneState,
     pendingFollowers: state.pendingFollowers,
