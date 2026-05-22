@@ -1,14 +1,17 @@
 /**
- * Clear-all-data control when snapshots exist (client-only).
+ * Desktop header "Clear data" control — opens the destructive ConfirmDialog.
+ * Hidden when no snapshots exist. Mobile equivalent lives inside the
+ * Shadcn DropdownMenu in `Header.tsx`.
  */
 
 'use client';
 
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Trash2 } from 'lucide-react';
 import { db } from '@/lib/db/dexie-client';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import * as snapshotService from '@/services/snapshot/snapshot.service';
 
 export function HeaderClearData() {
@@ -19,15 +22,17 @@ export function HeaderClearData() {
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-text-secondary hover:text-accent-red transition-colors rounded-lg hover:bg-bg-tertiary"
         title="Clear all stored snapshots"
+        className="text-text-secondary hover:text-accent-red"
       >
         <Trash2 className="w-3.5 h-3.5" />
         Clear data
-      </button>
+      </Button>
 
       <ConfirmDialog
         open={open}

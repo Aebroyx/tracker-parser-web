@@ -1,6 +1,6 @@
 # Feature Spec: Mobile Responsive UI (Phase 6)
 
-> **Document Status:** Complete v0.1  
+> **Document Status:** Complete v0.2  
 > **Last Updated:** 2026-05-22  
 > **Feature Phase:** 6  
 > **Parent Docs:** `docs/SYSTEM_SPEC.md`, `docs/DESIGN_LANGUAGE.md` §9  
@@ -49,7 +49,6 @@ Make Instaghost Tracker fully usable on mobile phones (375px width) and touch de
 - Native mobile app or PWA install prompt
 - Swipe gestures for snapshot navigation
 - Chart point tap-to-compare (deferred from Phase 4)
-- New Shadcn component dependencies (overflow menu implemented with existing Tailwind + Lucide)
 
 ---
 
@@ -72,9 +71,9 @@ Make Instaghost Tracker fully usable on mobile phones (375px width) and touch de
 
 ### 5.1 Mobile Header (`Header.tsx`)
 
-- Below `sm`: hide inline `<nav>`; show `MoreVertical` button opening an absolute-positioned menu.
-- Menu contains: `HeaderExportData`, `HeaderClearData`, GitHub link (same behavior as desktop).
-- Menu closes on outside click or after selecting an action.
+- Below `sm`: hide inline `<nav>`; show a Shadcn `<DropdownMenu>` (see `docs/DESIGN_LANGUAGE.md` §5.2.3) triggered by a `MoreVertical` icon Shadcn `<Button variant="ghost" size="icon">`.
+- Menu contains: Export data item, Clear data item (when snapshots exist), GitHub link item (`<DropdownMenuItem asChild>` wrapping an `<a target="_blank">`). Same behavior as desktop nav controls.
+- Menu closes via Radix dismissable layer (outside click, ESC, item activation) — no manual `useEffect` listeners.
 - Header horizontal padding: `px-4 sm:px-6` per design language.
 
 ### 5.2 Touch Detection (`use-file-upload.ts`)
@@ -149,7 +148,7 @@ Apply to `<footer>`.
 | # | Topic | Decision |
 |---|--------|----------|
 | 1 | **Mobile nav pattern** | Overflow popover menu (⋮), not bottom tab bar or slide-in drawer |
-| 2 | **Shadcn DropdownMenu** | Not added — lightweight custom menu with Tailwind + Lucide keeps zero new dependencies |
+| 2 | **Shadcn DropdownMenu** | **Adopted (Phase 7 Shadcn UI foundation).** The custom Tailwind + Lucide popover was replaced by the Shadcn `DropdownMenu` primitive built on `@radix-ui/react-dropdown-menu` for proper a11y (focus trap, ESC, roving tabindex) and to align with the Shadcn primitive policy in `docs/DESIGN_LANGUAGE.md` §5.2.3. The previous "zero new dependencies" rationale is superseded: Radix dropdown-menu is now a documented dependency in `docs/SYSTEM_SPEC.md` §3. |
 | 3 | **Touch detection location** | `useFileUpload` hook exposes `isTouchDevice`; no separate hook file |
 | 4 | **Stat grid at desktop** | Max 3 columns (`sm:grid-cols-3`), not 5 in one row |
 | 5 | **Chart on touch** | View-only with static legend; tooltip is desktop enhancement |
@@ -160,4 +159,5 @@ Apply to `<footer>`.
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-05-22 | v0.2 | Phase 7 Shadcn UI foundation: §5.1 mobile header now uses Shadcn `DropdownMenu`; removed "no new Shadcn dependencies" from §3.2 out-of-scope; flipped Resolved Decision #2 to adopt Shadcn DropdownMenu |
 | 2026-05-22 | v0.1 | Initial Phase 6 mobile responsive spec |

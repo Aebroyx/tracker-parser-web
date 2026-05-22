@@ -1,10 +1,16 @@
 /**
  * Global export dialog — pick snapshot(s), list type, and format.
+ *
+ * Built on the Shadcn Dialog + Select + Button primitives
+ * (`src/components/ui/{dialog,select,button}.tsx`).
+ *
+ * See: docs/features/05_data_management.md and
+ *      docs/DESIGN_LANGUAGE.md §5.2.1 (Dialog) / §5.3.1 (Select).
  */
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
 import { useExport } from '@/hooks/use-export';
 import {
@@ -12,6 +18,15 @@ import {
   isCrossSnapshotListType,
 } from '@/types/export';
 import { cn } from '@/lib/utils/cn';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -61,9 +76,11 @@ export function ExportDialog({
     setSnapshotId(defaultSnapshotId);
     const idx = snapshots.findIndex((s) => s.id === defaultSnapshotId);
     const older =
-      idx > 0 ? (snapshots[idx - 1]?.id ?? null) : snapshots.length >= 2
-        ? (snapshots[snapshots.length - 2]?.id ?? null)
-        : null;
+      idx > 0
+        ? (snapshots[idx - 1]?.id ?? null)
+        : snapshots.length >= 2
+          ? (snapshots[snapshots.length - 2]?.id ?? null)
+          : null;
     setOlderId(older);
     setNewerId(defaultSnapshotId);
     setListType('non-followers');
@@ -101,20 +118,8 @@ export function ExportDialog({
     olderSnapshot,
     newerSnapshot,
     needsComparison,
+    resolveAccounts,
   ]);
-
-  const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open, onKeyDown]);
 
   const handleExport = () => {
     if (!selectedSnapshot) return;
@@ -135,8 +140,6 @@ export function ExportDialog({
     onClose();
   };
 
-  if (!open) return null;
-
   const canExport =
     format === 'json'
       ? selectedSnapshot != null
@@ -145,36 +148,23 @@ export function ExportDialog({
         (!needsComparison || (olderSnapshot != null && newerSnapshot != null));
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="presentation"
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
     >
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/60"
-        aria-label="Close dialog"
-        onClick={onClose}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="export-dialog-title"
-        className={cn(
-          'relative z-10 w-full max-w-lg rounded-xl border border-border-subtle bg-bg-secondary p-6 shadow-lg max-h-[90vh] overflow-y-auto'
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2
-          id="export-dialog-title"
-          className="text-lg font-semibold text-text-primary flex items-center gap-2"
-        >
-          <Download className="w-5 h-5 text-accent-primary" />
-          Export data
-        </h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          Download lists as CSV or a full snapshot backup as JSON. Files stay on
-          your device only.
-        </p>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Download className="w-5 h-5 text-accent-primary" />
+            Export data
+          </DialogTitle>
+          <DialogDescription>
+            Download lists as CSV or a full snapshot backup as JSON. Files stay
+            on your device only.
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="mt-5 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
@@ -333,24 +323,19 @@ export function ExportDialog({
           )}
         </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-bg-tertiary transition-colors"
-          >
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="default"
             disabled={!canExport}
             onClick={handleExport}
-            className="btn-primary px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Download
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

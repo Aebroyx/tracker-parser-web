@@ -1,18 +1,35 @@
 /**
  * App header with navigation.
- * Mobile: overflow menu (Phase 6). Desktop: inline nav.
- * See: docs/features/06_mobile_responsive.md §5.1
+ *
+ * Mobile (<sm): Shadcn DropdownMenu overflow popover (Phase 6 + Phase 7
+ * Shadcn UI foundation). Desktop (sm+): inline nav.
+ *
+ * See: docs/features/06_mobile_responsive.md §5.1,
+ *      docs/DESIGN_LANGUAGE.md §5.2.3 (DropdownMenu).
  */
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { MoreVertical } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { Download, MoreVertical, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+
 import { HeaderClearData } from '@/components/layout/HeaderClearData';
 import { HeaderExportData } from '@/components/layout/HeaderExportData';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { ExportDialog } from '@/components/shared/ExportDialog';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { db } from '@/lib/db/dexie-client';
 import { APP_NAME } from '@/lib/utils/constants';
-import { cn } from '@/lib/utils/cn';
+import * as snapshotService from '@/services/snapshot/snapshot.service';
+import type { Snapshot } from '@/types/snapshot';
 
 const GITHUB_URL = 'https://github.com/Aebroyx/tracker-parser-web';
 
@@ -21,84 +38,85 @@ function DesktopNav() {
     <nav className="hidden sm:flex items-center gap-2">
       <HeaderExportData />
       <HeaderClearData />
-      <a
-        href={GITHUB_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary transition-colors"
-      >
-        GitHub
-      </a>
+      <Button asChild variant="ghost" size="sm" className="text-text-secondary">
+        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+          GitHub
+        </a>
+      </Button>
     </nav>
   );
 }
 
+/**
+ * Mobile overflow menu — Shadcn DropdownMenu items reuse the same data
+ * sources (live Dexie queries) and trigger the same dialogs as the
+ * desktop nav so behaviour stays identical across breakpoints.
+ */
 function MobileNavMenu() {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const snapshots = useLiveQuery(
+    () => db.snapshots.orderBy('savedAt').toArray(),
+    [],
+  ) as Snapshot[] | undefined;
 
-  useEffect(() => {
-    if (!open) return;
-
-    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('touchstart', handlePointerDown);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('touchstart', handlePointerDown);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [open]);
+  const count = snapshots?.length ?? 0;
+  const [exportOpen, setExportOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
 
   return (
-    <div ref={menuRef} className="relative sm:hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
-        aria-label="Open menu"
-        aria-expanded={open}
-        aria-haspopup="menu"
-      >
-        <MoreVertical className="w-5 h-5" />
-      </button>
-
-      {open && (
-        <div
-          role="menu"
-          className={cn(
-            'absolute right-0 top-full mt-1 z-50 min-w-[180px]',
-            'rounded-xl border border-border-subtle bg-bg-secondary py-1 shadow-lg'
-          )}
-        >
-          <div
-            className="flex flex-col [&_button]:w-full [&_button]:justify-start [&_button]:rounded-none [&_button]:px-4 [&_button]:py-3 [&_button]:text-sm"
-            onClick={() => setOpen(false)}
+    <div className="sm:hidden">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Open menu"
+            className="text-text-secondary"
           >
-            <HeaderExportData />
-            <HeaderClearData />
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              role="menuitem"
-              className="flex items-center px-4 py-3 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+            <MoreVertical className="w-5 h-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" sideOffset={4}>
+          {count > 0 && (
+            <DropdownMenuItem onSelect={() => setExportOpen(true)}>
+              <Download className="w-4 h-4" />
+              Export data
+            </DropdownMenuItem>
+          )}
+          {count > 0 && (
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => setClearOpen(true)}
             >
+              <Trash2 className="w-4 h-4" />
+              Clear data
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem asChild>
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
               GitHub
             </a>
-          </div>
-        </div>
-      )}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ExportDialog
+        open={exportOpen}
+        snapshots={snapshots ?? []}
+        onClose={() => setExportOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={clearOpen}
+        title="Clear all data?"
+        description="This removes every saved snapshot from this browser. This cannot be undone."
+        confirmLabel="Clear everything"
+        cancelLabel="Cancel"
+        destructive
+        onCancel={() => setClearOpen(false)}
+        onConfirm={() => {
+          void snapshotService.clearAllSnapshots().then(() => setClearOpen(false));
+        }}
+      />
     </div>
   );
 }

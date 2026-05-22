@@ -1,6 +1,11 @@
 /**
  * ZIP-only drag-and-drop upload zone.
- * See: docs/features/01_file_processing.md §10.2
+ *
+ * Uses the Shadcn Button primitive for Save / Cancel, and the Shadcn
+ * Progress primitive for the inline parse-progress bar.
+ *
+ * See: docs/features/01_file_processing.md §10.2–§10.3,
+ *      docs/DESIGN_LANGUAGE.md §5.2 (Button) / §5.2.2 (Progress).
  */
 
 'use client';
@@ -9,6 +14,8 @@ import { useRef, useState, useCallback } from 'react';
 import type { DropZoneState } from '@/types/ui';
 import { cn } from '@/lib/utils/cn';
 import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 interface DropZoneProps {
   state: DropZoneState;
@@ -152,31 +159,28 @@ export function DropZone({
         )}
 
         {effectiveState === 'parsing' && (
-          <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+          <div
+            className="flex flex-col items-center gap-2 w-full max-w-xs"
+            onClick={(e) => e.stopPropagation()}
+          >
             <p className="text-sm text-text-secondary capitalize">
               {stageLabel || 'Processing'}…
             </p>
-            <div className="w-full h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-300 ease-in-out"
-                style={{
-                  width: `${progress}%`,
-                  background: 'var(--accent-primary)',
-                }}
-              />
-            </div>
+            <Progress value={progress} aria-label="Parse progress" />
             <p className="text-xs text-text-muted">{progress}%</p>
             {onCancel && (
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   onCancel();
                 }}
-                className="text-xs text-text-secondary hover:text-text-primary underline transition-colors"
+                className="text-text-secondary hover:text-text-primary"
               >
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         )}
@@ -188,16 +192,17 @@ export function DropZone({
               {followingCount.toLocaleString()} following
             </p>
             {onSave && (
-              <button
+              <Button
                 type="button"
+                variant="default"
+                className="mt-2"
                 onClick={(e) => {
                   e.stopPropagation();
                   onSave();
                 }}
-                className="btn-primary mt-2 px-4 py-2 rounded-lg text-sm font-medium"
               >
                 Save Snapshot
-              </button>
+              </Button>
             )}
           </>
         )}

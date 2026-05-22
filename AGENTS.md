@@ -44,7 +44,8 @@ This project is built **spec-first**. The `docs/` directory is the **single sour
 | `src/components/dashboard/**` | `docs/features/04_dashboard_ui.md` | UI sections + AC |
 | `src/components/layout/**` | `docs/features/04_dashboard_ui.md`, `docs/DESIGN_LANGUAGE.md` | layout / tokens |
 | `src/components/shared/**` | `docs/ARCHITECTURE.md` §2 + the consuming feature spec | directory structure |
-| `src/components/ui/**` (Shadcn primitives) | `docs/DESIGN_LANGUAGE.md` | tokens, primitives |
+| `src/components/ui/**` (Shadcn primitives) | `docs/DESIGN_LANGUAGE.md` §5.2–§5.3.1, `docs/ARCHITECTURE.md` §2 | primitive listing, variants, tokens |
+| `components.json` (Shadcn config) | `docs/SYSTEM_SPEC.md` §3 (tech stack) | Shadcn CLI workflow line |
 | `src/services/parser/**` | `docs/features/01_file_processing.md`, `docs/ARCHITECTURE.md` §4 (Worker protocol) | parsing algorithms, message types |
 | `src/services/snapshot/**` | `docs/features/02_snapshot_timeline.md`, `docs/ARCHITECTURE.md` §5 (IndexedDB schema) | snapshot rules, schema |
 | `src/services/diff/**` | `docs/features/03_diff_engine.md`, `docs/ARCHITECTURE.md` §6 | diff algorithm, types |

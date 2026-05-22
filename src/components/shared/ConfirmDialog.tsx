@@ -1,12 +1,25 @@
 /**
- * Reusable confirmation dialog (modal overlay).
+ * Reusable confirmation dialog — thin wrapper around the Shadcn Dialog
+ * primitive (`src/components/ui/dialog.tsx`) and Shadcn Button.
+ *
  * Used for delete snapshot, clear all data, and prune-before-save flows.
+ * Public API (props) is intentionally unchanged from the previous custom
+ * overlay implementation so call sites do not need to be touched.
+ *
+ * See: docs/DESIGN_LANGUAGE.md §5.2.1 (Dialog) + §5.2 (Button variants).
  */
 
 'use client';
 
-import { useEffect, useCallback } from 'react';
-import { cn } from '@/lib/utils/cn';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -30,76 +43,36 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
-    },
-    [onCancel]
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open, onKeyDown]);
-
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="presentation"
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onCancel();
+      }}
     >
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/60"
-        aria-label="Close dialog"
-        onClick={onCancel}
-      />
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
+      <DialogContent
+        showCloseButton={false}
         aria-describedby="confirm-dialog-desc"
-        className={cn(
-          'relative z-10 w-full max-w-md rounded-xl border border-border-subtle bg-bg-secondary p-6 shadow-lg'
-        )}
-        onClick={(e) => e.stopPropagation()}
       >
-        <h2
-          id="confirm-dialog-title"
-          className="text-lg font-semibold text-text-primary"
-        >
-          {title}
-        </h2>
-        <p
-          id="confirm-dialog-desc"
-          className="mt-2 text-sm text-text-secondary"
-        >
-          {description}
-        </p>
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium border border-border-default text-text-secondary hover:bg-bg-tertiary transition-colors"
-          >
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription id="confirm-dialog-desc">
+            {description}
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={destructive ? 'destructive' : 'default'}
             onClick={onConfirm}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium',
-              destructive
-                ? 'bg-accent-red text-white transition-all duration-150 hover:brightness-[1.03]'
-                : 'btn-primary'
-            )}
           >
             {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

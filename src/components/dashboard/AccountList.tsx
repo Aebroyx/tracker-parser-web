@@ -9,6 +9,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { INSTAGRAM_BASE_URL } from '@/lib/utils/constants';
 import { cn } from '@/lib/utils/cn';
 import { ExportButton } from '@/components/shared/ExportButton';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -145,24 +146,28 @@ export function AccountList({
       </div>
 
       {!expanded && hiddenCount > 0 && (
-        <button
+        <Button
           type="button"
+          variant="link"
+          size="sm"
           onClick={() => setExpanded(true)}
-          className="text-xs font-medium text-accent-primary hover:underline self-start flex items-center gap-1"
+          className="self-start text-accent-primary"
         >
           <ChevronDown className="w-3.5 h-3.5" />
           Show all {sorted.length} ({hiddenCount} more)
-        </button>
+        </Button>
       )}
       {expanded && sorted.length > maxVisible && (
-        <button
+        <Button
           type="button"
+          variant="link"
+          size="sm"
           onClick={() => setExpanded(false)}
-          className="text-xs font-medium text-text-secondary hover:text-text-primary self-start flex items-center gap-1"
+          className="self-start text-text-secondary hover:text-text-primary"
         >
           <ChevronUp className="w-3.5 h-3.5" />
           Show less
-        </button>
+        </Button>
       )}
     </div>
   );

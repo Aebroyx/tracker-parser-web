@@ -18,6 +18,7 @@ import {
   SnapshotPicker,
   type SnapshotPickerValue,
 } from '@/components/dashboard/SnapshotPicker';
+import { Button } from '@/components/ui/button';
 import { useSnapshots } from '@/hooks/use-snapshots';
 import { useDiff } from '@/hooks/use-diff';
 import { BarChart3, Upload } from 'lucide-react';
@@ -66,13 +67,12 @@ export default function HomePage() {
           </p>
         </div>
 
-        <Link
-          href="/upload"
-          className="btn-primary flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-sm font-medium"
-        >
-          <Upload className="w-4 h-4" />
-          Upload new backup
-        </Link>
+        <Button asChild variant="default" className="w-full py-3 rounded-xl">
+          <Link href="/upload">
+            <Upload className="w-4 h-4" />
+            Upload new backup
+          </Link>
+        </Button>
 
         <StorageUsage usage={storage?.usage ?? null} quota={storage?.quota ?? null} />
 

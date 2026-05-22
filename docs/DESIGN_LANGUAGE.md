@@ -1,6 +1,6 @@
 # Design Language — Instaghost Tracker
 
-> **Document Status:** Draft v0.5  
+> **Document Status:** Draft v0.6  
 > **Last Updated:** 2026-05-22  
 > **Parent Spec:** `docs/SYSTEM_SPEC.md`
 
@@ -114,7 +114,7 @@ Gradients should read as **atmosphere**, not as a bold brand stripe. Prefer low 
 |---------|----------|-------|
 | Page shell | `--bg-primary` | Flat neutral dark fill — avoid purple-tinted page gradients |
 | Cards & panels | `--bg-secondary`, `--gradient-card`, `--border-subtle` | No drop shadows; depth from tone only |
-| Primary actions | `--gradient-accent`, `.btn-primary` | Pale spectral fill; hover brightens + glow ring + lift — never deep purple |
+| Primary actions | `--gradient-accent`, Shadcn `<Button>` (default variant) | Pale spectral fill; hover brightens + glow ring + lift — never deep purple |
 | Links & active nav | `--accent-primary`, `--accent-primary-hover` | Solid spectral lavender |
 | Positive / negative stats | `--accent-green`, `--accent-red` | Keep semantic colors muted so purple remains the mood |
 | Selection highlight | `--accent-glow` | Text selection should feel like a soft purple mist |
@@ -203,22 +203,83 @@ Any horizontal two-column flex or grid whose children cannot each reach `min-w-[
 - No drop shadows — depth comes from border and background contrast only
 - Hover: border transitions to `--border-default` over `150ms`
 
-### 5.2 Buttons
+### 5.2 Buttons (Shadcn UI)
 
-**Primary:**
-- Background: `--gradient-accent` (spectral lavender glow — not a loud purple ramp)
-- Text: `hsl(0, 0%, 12%)` — dark neutral for contrast on pale ghost buttons
-- Padding: `8px 16px`
-- Border radius: `8px`
-- Hover: **same pale gradient** — brighten slightly + soft spectral ring/glow + lift (`translateY(-1px)`). Never darken to deep purple.
-- Active: settle back down with reduced glow
-- Focus: `--accent-glow` only — no box-shadow stacks
+All button controls use the Shadcn **Button** primitive (`src/components/ui/button.tsx`) built on `class-variance-authority`. Native `<button>` elements are only used inside non-interactive wrappers (e.g. icon-only nav triggers that already meet the touch-target rule). The Button component supports the `asChild` prop (via `@radix-ui/react-slot`) for composing as a Next.js `<Link>` or anchor.
 
-**Secondary/Ghost:**
-- Background: transparent
-- Border: `1px solid --border-default`
-- Text: `--text-secondary`
-- Hover: background shifts to `--bg-tertiary`
+**Shared rules (all variants):**
+- Border radius: `8px` (`rounded-lg`)
+- Focus: visible focus ring using `--accent-glow` only — no box-shadow stacks
+- Disabled: `opacity-50` + `cursor-not-allowed`
+- Mobile touch target: `min-h-[44px]` below `sm` (§9.1) — never shrink below 44px tap area on touch viewports
+
+**Variants:**
+
+| Variant | Token | Usage | Hover | Notes |
+|---------|-------|-------|-------|-------|
+| `default` | `--gradient-accent` fill, `--text-on-accent` text | Primary CTAs (Save Snapshot, Download, Confirm) | Same pale gradient + `brightness(1.07)` + spectral ring glow + `translateY(-1px)` lift | Never darken to deep purple |
+| `destructive` | `--accent-red` fill, white text | Destructive confirm (Delete snapshot, Clear all data, Save-and-remove-oldest) | `brightness(1.07)` only — keep semantic red unmixed | No spectral glow; this is the **only** non-purple primary fill |
+| `outline` | Transparent fill, `1px solid --border-default`, `--text-secondary` | Secondary actions (Cancel, header utility buttons) | Background → `--bg-tertiary`, text → `--text-primary` | Ghost aesthetic equivalent of secondary buttons |
+| `ghost` | Transparent fill, no border, `--text-secondary` | Icon-only nav triggers, dialog dismissers, low-emphasis row actions | Background → `--bg-tertiary`, text → `--text-primary` | Use for tap targets that already have surrounding contrast |
+| `link` | Inline text only, `--accent-primary` | Inline navigation links inside body copy | Underline + `--accent-primary-hover` | Use sparingly; prefer real `<Link>` |
+
+**Sizes:**
+
+| Size | Height | Padding | Usage |
+|------|--------|---------|-------|
+| `default` | `min-h-[44px] sm:h-9` | `px-4 py-2` | Forms, primary CTAs, dialog footer buttons |
+| `sm` | `h-9` | `px-3` | Toolbar / inline / table-row controls (desktop-only emphasis) |
+| `icon` | `min-h-[44px] min-w-[44px]` (mobile) / `h-9 w-9` (sm+) | square | Icon-only buttons (overflow menu trigger, snapshot history row actions) |
+
+> **Rule:** Use `variant="default"` for the single primary action of a view. Use `variant="destructive"` only inside confirmation dialogs that already explain the consequence. Multiple `default` buttons on one screen dilutes the spectral CTA accent and is forbidden.
+
+### 5.2.1 Dialog (Shadcn UI)
+
+All modal flows (confirmations, export picker, prune-before-save) use the Shadcn **Dialog** primitive (`src/components/ui/dialog.tsx`) built on `@radix-ui/react-dialog`. Hand-rolled overlay `<div>` modals are forbidden.
+
+| Property | Value |
+|----------|-------|
+| Overlay | `bg-black/60`, full-screen fixed |
+| Content background | `--bg-secondary` |
+| Content border | `1px solid --border-subtle` |
+| Content radius | `12px` (`rounded-xl`) |
+| Content padding | `24px` (`p-6`) |
+| Max width | `max-w-md` (confirm) · `max-w-lg` (export picker) |
+| Shadow | None — depth from tone only (no heavy box-shadow stacks) |
+| Title | `text-lg font-semibold text-text-primary` (Shadcn `DialogTitle`) |
+| Description | `text-sm text-text-secondary` (Shadcn `DialogDescription`) |
+| Close trigger | ESC key + outside-click; explicit `X` button optional |
+| Footer | `flex justify-end gap-2`; Cancel (`outline`) then Confirm (`default` or `destructive`) |
+| Animation | Radix data-state fade + scale, ≤ 200ms (§6) |
+| Mobile | Content fits within viewport with `p-4` outer padding; long bodies use `max-h-[90vh] overflow-y-auto` |
+
+### 5.2.2 Progress (Shadcn UI)
+
+Linear progress indicators (upload parsing, future long-running tasks) use the Shadcn **Progress** primitive (`src/components/ui/progress.tsx`) built on `@radix-ui/react-progress`.
+
+| Property | Value |
+|----------|-------|
+| Track background | `--bg-tertiary` |
+| Track height | `h-1.5` (compact, inline in drop zones) |
+| Track radius | `rounded-full` |
+| Indicator fill | `--accent-primary` (solid spectral lavender — no gradient on small tracks) |
+| Indicator transition | `width 300ms ease-in-out` (§6) |
+| Indeterminate state | Not used — always provide a numeric `value` (0–100) |
+
+### 5.2.3 DropdownMenu (Shadcn UI)
+
+The mobile header overflow menu (§9.2) and any future contextual menus use the Shadcn **DropdownMenu** primitive (`src/components/ui/dropdown-menu.tsx`) built on `@radix-ui/react-dropdown-menu`. The previous custom Tailwind + Lucide popover in `Header.tsx` is replaced — see `docs/features/06_mobile_responsive.md` §5.1 and Resolved Decision #2.
+
+| Property | Value |
+|----------|-------|
+| Trigger | Shadcn `<Button variant="ghost" size="icon">` with `MoreVertical` icon |
+| Content panel | `--bg-secondary`, `1px solid --border-subtle`, `rounded-xl`, `py-1`, `min-w-[180px]` |
+| Item hover/focus | `--bg-tertiary` background, `--text-primary` text |
+| Item padding | `px-4 py-3` (44px-equivalent on mobile) |
+| Destructive item | `--accent-red` text on hover/focus |
+| Separator | `--border-subtle` |
+| Animation | Radix data-state fade + slide, ≤ 200ms (§6) |
+| Mobile | Items are stacked, full-width inside content panel; each item meets 44px touch target |
 
 ### 5.3 Inputs & Drop Zone
 
@@ -354,6 +415,7 @@ The timeline chart is **view-only on touch** — users read trends from the line
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-05-22 | v0.6 | Shadcn UI foundation adoption: replaced §5.2 `.btn-primary` rules with Shadcn `Button` variants (default/destructive/outline/ghost/link + sizes); added §5.2.1 Dialog, §5.2.2 Progress, §5.2.3 DropdownMenu primitive rules; updated §2.4 to reference the Shadcn Button |
 | 2026-05-22 | v0.5 | Added §5.3.1 Shadcn Select primitive rules |
 | 2026-05-22 | v0.4 | Added §9 Mobile & Touch; §4.4 stack-on-mobile rule; touch copy, stat grid, and list collapse rules in §5 |
 | 2026-05-19 | v0.3 | Ghost aesthetic palette and spectral lavender accents |

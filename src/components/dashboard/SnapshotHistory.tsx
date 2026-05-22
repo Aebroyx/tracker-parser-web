@@ -10,6 +10,7 @@ import { formatNumber } from '@/lib/utils/formatters';
 import { Pencil, Trash2, Check, X, Download } from 'lucide-react';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { ExportDialog } from '@/components/shared/ExportDialog';
+import { Button } from '@/components/ui/button';
 
 export interface SnapshotHistoryProps {
   snapshots: Snapshot[];
@@ -84,28 +85,32 @@ export function SnapshotHistory({
                         autoFocus
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <button
+                      <Button
                         type="button"
-                        className="p-1 rounded-lg text-accent-green hover:bg-bg-tertiary"
+                        variant="ghost"
+                        size="icon"
                         aria-label="Save label"
+                        className="text-accent-green sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           void commitEdit(id);
                         }}
                       >
                         <Check className="w-4 h-4" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="p-1 rounded-lg text-text-muted hover:bg-bg-tertiary"
+                        variant="ghost"
+                        size="icon"
                         aria-label="Cancel edit"
+                        className="text-text-muted sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           cancelEdit();
                         }}
                       >
                         <X className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <>
@@ -124,30 +129,36 @@ export function SnapshotHistory({
 
                 {!isEditing && (
                   <div className="flex items-center gap-1 shrink-0">
-                    <button
+                    <Button
                       type="button"
-                      className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-text-secondary hover:text-accent-primary hover:bg-bg-tertiary"
+                      variant="ghost"
+                      size="icon"
                       aria-label="Export snapshot data"
+                      className="text-text-secondary hover:text-accent-primary"
                       onClick={() => setExportSnapshotId(id)}
                     >
                       <Download className="w-4 h-4" />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
-                      className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary"
+                      variant="ghost"
+                      size="icon"
                       aria-label="Rename snapshot"
+                      className="text-text-secondary"
                       onClick={() => startEdit(s)}
                     >
                       <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
-                      className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-text-secondary hover:text-accent-red hover:bg-bg-tertiary"
+                      variant="ghost"
+                      size="icon"
                       aria-label="Delete snapshot"
+                      className="text-text-secondary hover:text-accent-red"
                       onClick={() => setDeleteTarget(s)}
                     >
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>

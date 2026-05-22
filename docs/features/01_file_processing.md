@@ -1,6 +1,6 @@
 # Feature Spec: File Processing (Phase 1)
 
-> **Document Status:** Draft v0.3  
+> **Document Status:** Draft v0.4  
 > **Last Updated:** 2026-05-22  
 > **Feature Phase:** 1  
 > **Parent Docs:** `docs/SYSTEM_SPEC.md`, `docs/ARCHITECTURE.md`
@@ -380,10 +380,10 @@ Drag-over visual states remain for hybrid/desktop devices; they are not shown on
 
 ### 10.3 Progress Indicator
 
-- **Type:** Linear progress bar (Shadcn `Progress` component)
-- **Labels:** Shows current stage name + percentage
-- **Animation:** Smooth transition between percentage values
-- **Cancel button:** Appears next to progress bar during parsing
+- **Type:** Linear progress bar via the Shadcn `Progress` primitive (`src/components/ui/progress.tsx`) — see `docs/DESIGN_LANGUAGE.md` §5.2.2. Rendered **inline inside the active drop zone or slot**, not as a standalone component.
+- **Labels:** Stage name + percentage rendered above/below the progress track.
+- **Animation:** `width 300ms ease-in-out` on the indicator (Radix data attribute driven).
+- **Cancel button:** A Shadcn `<Button variant="link" size="sm">` next to the progress bar during parsing.
 
 ### 10.4 Help Section (Collapsible)
 
@@ -482,10 +482,10 @@ __tests__/
 - [x] Implement `src/services/parser/worker.ts` (Web Worker entry point, routing JSON vs HTML)
 - [x] Create `src/hooks/use-parser-worker.ts` (Worker lifecycle + message handling)
 - [x] Create `src/hooks/use-file-upload.ts` (drag-and-drop + file input state + mode selector + replace logic)
-- [x] Build `src/components/file-upload/DropZone.tsx` (ZIP-only)
-- [x] Build `src/components/file-upload/FileSlotDropZone.tsx` (JSON/HTML per-slot)
-- [x] Build `src/components/file-upload/UploadReadyBar.tsx` (dual-mode save CTA)
-- [ ] Build `src/components/file-upload/ProgressBar.tsx` (standalone optional; progress inline in drop zones per AC-21)
+- [x] Build `src/components/file-upload/DropZone.tsx` (ZIP-only, uses Shadcn `Progress` inline + Shadcn `Button` for Save / Cancel)
+- [x] Build `src/components/file-upload/FileSlotDropZone.tsx` (JSON/HTML per-slot, uses Shadcn `Progress` inline)
+- [x] Build `src/components/file-upload/UploadReadyBar.tsx` (dual-mode save CTA, uses Shadcn `Button`)
+- [x] Progress indicator wired via Shadcn `Progress` inline in drop zones (AC-21) — standalone `ProgressBar.tsx` not required
 - [x] Build `src/components/layout/PrivacyBanner.tsx`
 - [x] Build `src/components/file-upload/HelpSection.tsx`
 - [x] Integrate on `src/app/page.tsx` (landing page)
@@ -513,6 +513,7 @@ __tests__/
 
 | Date | Version | Change |
 |------|---------|--------|
+| 2026-05-22 | v0.4 | Phase 7 Shadcn UI foundation: §10.3 progress indicator now references Shadcn `Progress` primitive + Shadcn `Button` for Cancel; checklist updated to mark Progress wired via Shadcn (no standalone `ProgressBar.tsx` needed) |
 | 2026-05-22 | v0.3 | Touch-device upload copy swap in §10.2 and AC-6b (Phase 6) |
 | 2026-05-22 | v0.2 | Dual-slot JSON/HTML upload, HTML parsing |
 
