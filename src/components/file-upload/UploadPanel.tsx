@@ -136,6 +136,7 @@ export function UploadPanel({
           <DropZone
             state={upload.dropZoneState}
             onFiles={upload.handleFiles}
+            isTouchDevice={upload.isTouchDevice}
             followerCount={followerCount}
             followingCount={followingCount}
             errorMessage={zipErrorMessage}
@@ -162,6 +163,7 @@ export function UploadPanel({
                 mode={dualFileMode}
                 state={upload.followersSlotState}
                 onFiles={(files) => upload.handleSlotFiles(files, 'followers')}
+                isTouchDevice={upload.isTouchDevice}
                 accountCount={followerCount}
                 fileName={upload.followersFileName}
                 errorMessage={upload.followersError ?? undefined}
@@ -181,6 +183,7 @@ export function UploadPanel({
                 mode={dualFileMode}
                 state={upload.followingSlotState}
                 onFiles={(files) => upload.handleSlotFiles(files, 'following')}
+                isTouchDevice={upload.isTouchDevice}
                 accountCount={followingCount}
                 fileName={upload.followingFileName}
                 errorMessage={upload.followingError ?? undefined}

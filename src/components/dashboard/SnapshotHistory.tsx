@@ -126,7 +126,7 @@ export function SnapshotHistory({
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
-                      className="p-2 rounded-lg text-text-secondary hover:text-accent-primary hover:bg-bg-tertiary"
+                      className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-text-secondary hover:text-accent-primary hover:bg-bg-tertiary"
                       aria-label="Export snapshot data"
                       onClick={() => setExportSnapshotId(id)}
                     >
@@ -134,7 +134,7 @@ export function SnapshotHistory({
                     </button>
                     <button
                       type="button"
-                      className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary"
+                      className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary"
                       aria-label="Rename snapshot"
                       onClick={() => startEdit(s)}
                     >
@@ -142,7 +142,7 @@ export function SnapshotHistory({
                     </button>
                     <button
                       type="button"
-                      className="p-2 rounded-lg text-text-secondary hover:text-accent-red hover:bg-bg-tertiary"
+                      className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-text-secondary hover:text-accent-red hover:bg-bg-tertiary"
                       aria-label="Delete snapshot"
                       onClick={() => setDeleteTarget(s)}
                     >

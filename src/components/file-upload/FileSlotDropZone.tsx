@@ -15,6 +15,7 @@ interface FileSlotDropZoneProps {
   mode: 'json' | 'html';
   state: SlotVisualState;
   onFiles: (files: FileList | File[]) => void;
+  isTouchDevice?: boolean;
   accountCount?: number;
   fileName?: string;
   errorMessage?: string;
@@ -56,6 +57,7 @@ export function FileSlotDropZone({
   mode,
   state,
   onFiles,
+  isTouchDevice = false,
   accountCount = 0,
   fileName,
   errorMessage,
@@ -168,9 +170,11 @@ export function FileSlotDropZone({
           {effectiveState === 'idle' && (
             <>
               <p className="text-xs font-medium text-text-primary">
-                Drop file here
+                {isTouchDevice ? 'Tap to select file' : 'Drop file here'}
               </p>
-              <p className="text-xs text-text-secondary">or click to browse</p>
+              {!isTouchDevice && (
+                <p className="text-xs text-text-secondary">or click to browse</p>
+              )}
             </>
           )}
 

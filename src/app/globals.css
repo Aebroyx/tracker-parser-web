@@ -112,6 +112,10 @@ body {
   background: var(--gradient-spectral-halo);
 }
 
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
 /* ─── Selection ───────────────────────────────────────────────────── */
 
 ::selection {

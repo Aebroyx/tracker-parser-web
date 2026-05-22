@@ -1,6 +1,6 @@
 # System Specification — Instaghost Tracker (Web)
 
-> **Document Status:** Draft v0.3  
+> **Document Status:** Draft v0.4  
 > **Last Updated:** 2026-05-22  
 > **Author:** Spec-Driven Development Process
 
@@ -40,7 +40,7 @@ Build **Instaghost Tracker** — a **privacy-first, client-side only** web appli
 | **Framework** | Next.js 14+ (App Router) | File-based routing, SSR-capable layout shells, standard Vercel deployment. |
 | **Language** | TypeScript (Strict Mode) | Type safety for complex JSON parsing and data diffing logic. |
 | **Styling** | Tailwind CSS v3+ | Utility-first CSS for rapid, consistent UI development. Design tokens defined in `docs/DESIGN_LANGUAGE.md`. |
-| **UI Components** | Shadcn UI | Accessible, composable primitives built on Radix UI. Not a dependency — components are copied into the project. |
+| **UI Components** | Shadcn UI | Accessible, composable primitives built on Radix UI. Not a dependency — components are copied into the project. `@radix-ui/react-select` powers the Select primitive. |
 | **Icons** | Lucide React | Consistent, lightweight SVG icon library. |
 | **Client Storage** | IndexedDB via Dexie.js | Structured storage for accumulated snapshots and timeline history. Survives page refreshes. All data stays in the browser. |
 | **Heavy Parsing** | Web Workers | Offload JSON/HTML parsing of large exports to a background thread to keep the UI responsive. |
@@ -205,6 +205,7 @@ The parser extracts `username` from the URL path (`/_u/` segment), not from link
 | 3 | Snapshot Diff Engine | `docs/features/03_diff_engine.md` | ✅ Complete |
 | 4 | Dashboard & Timeline Visualization | `docs/features/04_dashboard_ui.md` | ✅ Complete |
 | 5 | Data Export & Clear Controls | `docs/features/05_data_management.md` | ✅ Complete |
+| 6 | Mobile Responsive UI | `docs/features/06_mobile_responsive.md` | ✅ Complete |
 
 ---
 
@@ -217,7 +218,7 @@ The following are explicitly **out of scope** for this project:
 - ❌ Backend server or database
 - ❌ Real-time follower tracking
 - ❌ Multi-user collaboration
-- ❌ Mobile native app (responsive web only)
+- ❌ Mobile native app (responsive web is in scope — see Phase 6)
 - ❌ Automated Instagram data fetching
 
 ---
@@ -234,3 +235,12 @@ The following are explicitly **out of scope** for this project:
 | **Snapshot** | A timestamped record of a parsed Instagram export, stored in IndexedDB. Snapshots accumulate over time to form a timeline. |
 | **Diff** | The computed difference between two snapshots (e.g., Dec 2025 vs. Jan 2026). Shows gained/lost followers and following. |
 | **Export** | The `.zip`, `.json`, or `.html` file downloaded from Instagram's "Download Your Information" feature. |
+
+---
+
+## Change Log
+
+| Date | Version | Change |
+|------|---------|--------|
+| 2026-05-22 | v0.4 | Added Phase 6 (Mobile Responsive UI) to roadmap; clarified non-goals for responsive web vs native app |
+| 2026-05-22 | v0.3 | HTML export support, dual-slot upload model |

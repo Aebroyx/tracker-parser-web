@@ -1,7 +1,7 @@
 # Feature Spec: Dashboard & Timeline Visualization (Phase 4)
 
-> **Document Status:** Complete v0.1  
-> **Last Updated:** 2026-05-18  
+> **Document Status:** Complete v0.2  
+> **Last Updated:** 2026-05-22  
 > **Feature Phase:** 4  
 > **Parent Docs:** `docs/SYSTEM_SPEC.md`, `docs/ARCHITECTURE.md`  
 > **Depends On:** Phase 1, Phase 2, Phase 3
@@ -59,7 +59,7 @@ Build the main dashboard UI that serves as the application's home screen for ret
 | AC-U3 | Timeline chart plots follower count over all snapshots | 2+ snapshots → line chart with data points (following series also shown). 1 snapshot → placeholder message. |
 | AC-U4 | User can select two snapshots for manual comparison | Picker allows choosing any two → diff updates |
 | AC-U5 | "Upload New Backup" button navigates to `/upload` | Click → `/upload` page loads |
-| AC-U6 | Dashboard is responsive (mobile-friendly) | Works on 375px width screens; layout uses responsive grids and `ResponsiveContainer` |
+| AC-U6 | Dashboard is responsive (mobile-friendly) | Works on 375px width: StatsBar 2-col grid with full-width 5th card; SnapshotPicker stacks vertically; AccountList hides timestamps; TimelineChart uses `ResponsiveContainer` + static legend; header overflow menu (Phase 6) |
 
 ---
 
@@ -74,6 +74,7 @@ Build the main dashboard UI that serves as the application's home screen for ret
 - [x] Implement smart landing logic in `src/app/page.tsx` (0 / 1 / 2+ branches per §3.1)
 - [x] Wire up diff engine to dashboard state _(Phase 3: `useDiff`, **`DiffCard`** on `/` when diff valid)_
 - [x] Responsive layout testing (375 / 768 / 1024 — Tailwind breakpoints + chart `ResponsiveContainer`)
+- [x] Mobile-specific layout polish _(Phase 6 — see `docs/features/06_mobile_responsive.md`)_
 - [ ] Write component tests _(deferred; same backlog as Phases 1–3)_
 
 ---
@@ -85,3 +86,12 @@ Build the main dashboard UI that serves as the application's home screen for ret
 | 1 | **DiffCard vs DiffSummary** | **DiffCard** is the Phase 4 wrapper; **DiffSummary** remains the Phase 3 expandable diff lists. |
 | 2 | **Chart library** | **Recharts** — client-only; no analytics / external calls. |
 | 3 | **Stat deltas** | Only **followers** and **following** show Δ vs. older snapshot; **SnapshotDiff** does not carry non-follower / fan / mutual deltas in v1. |
+
+---
+
+## Change Log
+
+| Date | Version | Change |
+|------|---------|--------|
+| 2026-05-22 | v0.2 | Expanded AC-U6 for Phase 6 mobile requirements |
+| 2026-05-18 | v0.1 | Initial Phase 4 dashboard spec |

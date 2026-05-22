@@ -30,7 +30,7 @@ export function StatsBar({
   return (
     <section className={cn('w-full', className)} aria-label="Snapshot overview">
       <h2 className="text-lg font-semibold text-text-primary mb-3">At a glance</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <StatCard
           label="Followers"
           value={stats.totalFollowers}

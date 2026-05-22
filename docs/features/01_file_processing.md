@@ -1,6 +1,6 @@
 # Feature Spec: File Processing (Phase 1)
 
-> **Document Status:** Draft v0.2  
+> **Document Status:** Draft v0.3  
 > **Last Updated:** 2026-05-22  
 > **Feature Phase:** 1  
 > **Parent Docs:** `docs/SYSTEM_SPEC.md`, `docs/ARCHITECTURE.md`
@@ -40,7 +40,7 @@ Enable users to upload Instagram data exports in `.zip`, `.json`, or `.html` for
 | AC-4 | Files exceeding 500MB are rejected before parsing | Upload 600MB file → error toast: "File exceeds the 500MB limit." |
 | AC-5 | The drop zone provides visual feedback on drag-over | Border color changes, icon animates on `dragenter` |
 | AC-6 | Multiple follower files can be uploaded in the followers slot (pagination) | User selects `followers_1.json` + `followers_2.json` in the followers slot → merged into one followers list |
-| AC-6b | JSON/HTML modes show two labeled upload slots side by side on `sm+` viewports | Followers and Following zones visible at once; stacked on mobile |
+| AC-6b | JSON/HTML modes show two labeled upload slots side by side on `sm+` viewports | Followers and Following zones visible at once; stacked on mobile. On touch devices (`hover: none` + `pointer: coarse`), idle copy reads "Tap to select file" instead of drag-and-drop text |
 | AC-6c | Save Snapshot appears below both slots only when followers and following data are present | Same completion rule as before; not inside a single slot |
 | AC-7 | Clicking an upload zone opens the system file picker | `<input type="file">` is triggered programmatically per slot (ZIP: single zone) |
 | AC-7b | Wrong-slot upload shows a slot-level error | `following.json` dropped in Followers slot → "use the Following slot" |
@@ -351,6 +351,15 @@ The app performs **soft validation** on Instagram profile URLs extracted from ex
 
 Responsive: `grid-cols-1` on mobile, `sm:grid-cols-2` side by side.
 
+**Touch-device copy swap:** When `isTouchDevice` is true (detected via `matchMedia('(hover: none) and (pointer: coarse)')`), idle-state instructional text changes:
+
+| Zone | Desktop idle copy | Touch idle copy |
+|------|-------------------|-----------------|
+| ZIP `DropZone` | "Drag & drop your Instagram export here" / "or click to browse files" | "Tap to select your Instagram export" |
+| `FileSlotDropZone` | "Drop file here" / "or click to browse" | "Tap to select file" |
+
+Drag-over visual states remain for hybrid/desktop devices; they are not shown on pure touch because OS-level drag-and-drop is unavailable.
+
 **ZIP drop zone states (`DropZoneState`):**
 | State | Visual |
 |-------|--------|
@@ -497,4 +506,13 @@ __tests__/
 | 2 | Should multiple file uploads merge or replace? | **✅ Replace.** Each upload replaces the previous data for that category. No incremental merge. See §6. | Simpler mental model. Users upload complete backups as snapshots. The timeline handles comparison between different points in time. |
 | 3 | Should we validate the Instagram profile URL format? | **✅ Soft warning.** Non-blocking validation with warnings collected in `ParseMeta.warnings`. See §7 for rules. | Invalid URLs shouldn't block analysis, but users should be informed of data quality issues. |
 | 4 | What happens if followers span 10+ paginated files? | **✅ Support up to 100 paginated files** (`followers_1` through `followers_100`, JSON or HTML). | 100 files covers even the largest accounts. |
+
+---
+
+## Change Log
+
+| Date | Version | Change |
+|------|---------|--------|
+| 2026-05-22 | v0.3 | Touch-device upload copy swap in §10.2 and AC-6b (Phase 6) |
+| 2026-05-22 | v0.2 | Dual-slot JSON/HTML upload, HTML parsing |
 

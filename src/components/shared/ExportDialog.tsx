@@ -12,6 +12,13 @@ import {
   isCrossSnapshotListType,
 } from '@/types/export';
 import { cn } from '@/lib/utils/cn';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { Snapshot } from '@/types/snapshot';
 import type { ExportFormat, ExportListType } from '@/types/export';
 
@@ -170,65 +177,74 @@ export function ExportDialog({
         </p>
 
         <div className="mt-5 flex flex-col gap-4">
-          <label className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5">
             <span className="text-xs text-text-secondary">Snapshot</span>
-            <select
-              value={snapshotId ?? ''}
-              onChange={(e) => {
-                const id = Number(e.target.value);
-                setSnapshotId(Number.isFinite(id) ? id : null);
+            <Select
+              value={snapshotId != null ? String(snapshotId) : undefined}
+              onValueChange={(v) => {
+                const id = Number(v);
+                if (!Number.isFinite(id)) return;
+                setSnapshotId(id);
                 if (!needsComparison) setNewerId(id);
               }}
-              className="text-sm rounded-lg border border-border-default bg-bg-primary text-text-primary px-3 py-2"
             >
-              {snapshots.map((s) =>
-                s.id != null ? (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ) : null
-              )}
-            </select>
-          </label>
+              <SelectTrigger aria-label="Snapshot">
+                <SelectValue placeholder="Select snapshot" />
+              </SelectTrigger>
+              <SelectContent>
+                {snapshots.map((s) =>
+                  s.id != null ? (
+                    <SelectItem key={s.id} value={String(s.id)}>
+                      {s.label}
+                    </SelectItem>
+                  ) : null
+                )}
+              </SelectContent>
+            </Select>
+          </div>
 
           {needsComparison && snapshots.length >= 2 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-text-secondary">Older backup</span>
-                <select
-                  value={olderId ?? ''}
-                  onChange={(e) =>
-                    setOlderId(Number(e.target.value) || null)
-                  }
-                  className="text-sm rounded-lg border border-border-default bg-bg-primary text-text-primary px-3 py-2"
+                <Select
+                  value={olderId != null ? String(olderId) : undefined}
+                  onValueChange={(v) => setOlderId(Number(v) || null)}
                 >
-                  {snapshots.map((s) =>
-                    s.id != null ? (
-                      <option key={s.id} value={s.id}>
-                        {s.label}
-                      </option>
-                    ) : null
-                  )}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1.5">
+                  <SelectTrigger aria-label="Older backup">
+                    <SelectValue placeholder="Select older backup" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {snapshots.map((s) =>
+                      s.id != null ? (
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          {s.label}
+                        </SelectItem>
+                      ) : null
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-text-secondary">Newer backup</span>
-                <select
-                  value={newerId ?? ''}
-                  onChange={(e) =>
-                    setNewerId(Number(e.target.value) || null)
-                  }
-                  className="text-sm rounded-lg border border-border-default bg-bg-primary text-text-primary px-3 py-2"
+                <Select
+                  value={newerId != null ? String(newerId) : undefined}
+                  onValueChange={(v) => setNewerId(Number(v) || null)}
                 >
-                  {snapshots.map((s) =>
-                    s.id != null ? (
-                      <option key={s.id} value={s.id}>
-                        {s.label}
-                      </option>
-                    ) : null
-                  )}
-                </select>
-              </label>
+                  <SelectTrigger aria-label="Newer backup">
+                    <SelectValue placeholder="Select newer backup" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {snapshots.map((s) =>
+                      s.id != null ? (
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          {s.label}
+                        </SelectItem>
+                      ) : null
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 

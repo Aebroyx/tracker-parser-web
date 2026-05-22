@@ -13,6 +13,7 @@ import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 interface DropZoneProps {
   state: DropZoneState;
   onFiles: (files: FileList | File[]) => void;
+  isTouchDevice?: boolean;
   followerCount?: number;
   followingCount?: number;
   errorMessage?: string;
@@ -25,6 +26,7 @@ interface DropZoneProps {
 export function DropZone({
   state,
   onFiles,
+  isTouchDevice = false,
   followerCount = 0,
   followingCount = 0,
   errorMessage,
@@ -131,9 +133,13 @@ export function DropZone({
         {effectiveState === 'idle' && (
           <>
             <p className="text-sm font-medium text-text-primary">
-              Drag & drop your Instagram export here
+              {isTouchDevice
+                ? 'Tap to select your Instagram export'
+                : 'Drag & drop your Instagram export here'}
             </p>
-            <p className="text-xs text-text-secondary">or click to browse files</p>
+            {!isTouchDevice && (
+              <p className="text-xs text-text-secondary">or click to browse files</p>
+            )}
           </>
         )}
 

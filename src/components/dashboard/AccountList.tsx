@@ -9,6 +9,13 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { INSTAGRAM_BASE_URL } from '@/lib/utils/constants';
 import { cn } from '@/lib/utils/cn';
 import { ExportButton } from '@/components/shared/ExportButton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { InstagramAccount } from '@/types/instagram';
 import type { ExportContext } from '@/types/export';
 
@@ -85,20 +92,21 @@ export function AccountList({
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <label className="text-xs text-text-secondary flex items-center gap-1.5">
+        <div className="text-xs text-text-secondary flex items-center gap-1.5">
           <span className="shrink-0">Sort</span>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as AccountSortMode)}
-            className="text-xs font-medium rounded-lg border border-border-default bg-bg-primary text-text-primary px-2 py-1.5 min-w-40"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+          <Select value={sort} onValueChange={(v) => setSort(v as AccountSortMode)}>
+            <SelectTrigger size="sm" className="min-w-40" aria-label="Sort accounts">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-2">
           {exportContext && (
             <ExportButton accounts={accounts} exportContext={exportContext} />
@@ -110,7 +118,7 @@ export function AccountList({
       </div>
 
       <div className="rounded-xl border border-border-subtle overflow-hidden">
-        <div className="flex justify-between text-xs text-text-muted px-3 py-2 bg-bg-tertiary/50 border-b border-border-subtle">
+        <div className="hidden sm:flex justify-between text-xs text-text-muted px-3 py-2 bg-bg-tertiary/50 border-b border-border-subtle">
           <span>Username</span>
           <span>Since</span>
         </div>
@@ -118,17 +126,17 @@ export function AccountList({
           {visible.map((acc) => (
             <li
               key={acc.username}
-              className="flex items-start justify-between gap-3 px-3 py-2 text-sm hover:bg-bg-tertiary/40 transition-colors"
+              className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-bg-tertiary/40 transition-colors min-h-[44px] sm:min-h-0"
             >
               <a
                 href={profileHref(acc)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-text-primary truncate min-w-0 hover:text-accent-primary shrink"
+                className="font-mono text-text-primary truncate min-w-0 hover:text-accent-primary flex-1 flex items-center min-h-[44px] sm:min-h-0"
               >
                 @{acc.username}
               </a>
-              <span className="text-xs text-text-secondary tabular-nums shrink-0 text-right max-w-[45%] sm:max-w-none">
+              <span className="hidden sm:inline text-xs text-text-secondary tabular-nums shrink-0 text-right">
                 {formatTimestamp(acc.timestamp)}
               </span>
             </li>
